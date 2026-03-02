@@ -38,10 +38,10 @@
   }
 
   #game-wrapper {
-    width: 1100px;
-    height: 680px;
+    width: 1280px;
+    height: 700px;
     display: flex;
-    gap: 8px;
+    gap: 10px;
     position: relative;
   }
 
@@ -63,8 +63,8 @@
   .pixel-art  { font-size: 40px; line-height: 1; }
 
   #map-container {
-    flex: 0 0 720px;
-    height: 680px;
+    flex: 0 0 740px;
+    height: 700px;
     position: relative;
     border: 3px solid var(--border);
     overflow: hidden;
@@ -132,19 +132,54 @@
   .fb-correct { color: var(--hp-green); }
   .fb-wrong   { color: var(--hp-red); }
 
-  #flashcard-panel { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
-  .flash-card {
-    flex: 1; background: #1a1a35; border: 2px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    cursor: pointer; padding: 12px; text-align: center; position: relative; overflow: hidden; transition: border-color 0.2s;
+  #flashcard-panel { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden; min-height: 0; }
+
+  /* ---- Flashcard 3D flip ---- */
+  #flash-slide {
+    width: 100%; height: 100%;
   }
-  .flash-card:hover { border-color: var(--accent2); }
-  .flash-card::after { content: 'CLICK TO FLIP'; position: absolute; bottom: 6px; font-size: 5px; color: #444; }
-  .flash-front { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .flash-back  { display: none; flex-direction: column; align-items: center; gap: 6px; }
-  .flash-card.flipped .flash-front { display: none; }
-  .flash-card.flipped .flash-back  { display: flex; }
-  .flash-nav { display: flex; gap: 5px; justify-content: center; }
+  .flash-card-scene {
+    flex: 1;
+    perspective: 1000px;
+    cursor: pointer;
+    min-height: 0;
+  }
+  .flash-card {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+  }
+  .flash-card.flipped { transform: rotateY(180deg); }
+  .flash-front, .flash-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; padding: 20px 18px 28px;
+    text-align: center;
+    border: 2px solid var(--border);
+    background: #1a1a35;
+    border-radius: 4px;
+  }
+  .flash-back {
+    transform: rotateY(180deg);
+    background: #0d1e30;
+    border-color: var(--accent2);
+    justify-content: flex-start;
+    padding-top: 24px;
+  }
+  .flash-card-scene:hover .flash-front { border-color: var(--accent2); }
+  .flash-hint { font-size: 6px; color: #3a3a5a; position: absolute; bottom: 8px; letter-spacing: 1px; }
+  .flash-word-big { font-size: 22px; color: var(--accent2); letter-spacing: 3px; text-shadow: 2px 2px 0 #006080; }
+  .flash-pos { font-size: 7px; color: #666; letter-spacing: 1px; }
+  .flash-def { font-family: 'VT323', monospace; font-size: 22px; color: var(--text); line-height: 1.45; }
+  .flash-ex  { font-family: 'VT323', monospace; font-size: 18px; color: #7ab8cc; font-style: italic; line-height: 1.45; border-left: 3px solid var(--accent2); padding-left: 10px; text-align: left; width: 100%; }
+  .flash-emoji-big { font-size: 48px; line-height: 1; }
+  .flash-emoji-sm  { font-size: 28px; line-height: 1; }
+  .flash-nav { display: flex; gap: 6px; justify-content: center; flex-shrink: 0; }
 
   #sr-panel { flex: 0 0 auto; }
   .word-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -229,15 +264,6 @@
   </div>
 
   <div id="sidebar">
-    <div class="panel" id="word-card">
-      <div class="panel-title">📖 CURRENT WORD</div>
-      <span class="word-emoji" id="word-emoji">❓</span>
-      <div class="word-display" id="word-text">---</div>
-      <div class="word-pos" id="word-pos"></div>
-      <div class="word-definition" id="word-def">Explore the map to discover vocabulary!</div>
-      <div class="word-example" id="word-ex"></div>
-    </div>
-
     <div class="panel" id="battle-panel" style="display:none">
       <div class="panel-title">⚔️ BATTLE</div>
       <div id="enemy-area">
@@ -251,15 +277,21 @@
 
     <div class="panel" id="flashcard-panel" style="display:none">
       <div class="panel-title">📚 STUDY WITH SCHOLAR</div>
-      <div class="flash-card" id="flash-card" onclick="flipCard()">
-        <div class="flash-front">
-          <span id="flash-emoji" style="font-size:34px">❓</span>
-          <div style="font-size:11px;color:var(--accent2)" id="flash-word">---</div>
-          <div style="font-family:'VT323',monospace;font-size:14px;color:#888">tap to see definition</div>
-        </div>
-        <div class="flash-back">
-          <div style="font-family:'VT323',monospace;font-size:17px;color:var(--text);text-align:center" id="flash-def"></div>
-          <div style="font-family:'VT323',monospace;font-size:14px;color:#aaa;font-style:italic;text-align:center" id="flash-ex"></div>
+      <div class="flash-card-scene" onclick="flipCard()">
+        <div class="flash-card" id="flash-card">
+          <div class="flash-front">
+            <span class="flash-emoji-big" id="flash-emoji">❓</span>
+            <div class="flash-word-big" id="flash-word">---</div>
+            <div class="flash-pos" id="flash-pos">[ — ]</div>
+            <span class="flash-hint">▶ CLICK TO REVEAL DEFINITION</span>
+          </div>
+          <div class="flash-back">
+            <span class="flash-emoji-sm" id="flash-emoji-back">❓</span>
+            <div class="flash-word-big" id="flash-word-back" style="font-size:15px;margin-bottom:4px"></div>
+            <div class="flash-def" id="flash-def"></div>
+            <div class="flash-ex" id="flash-ex"></div>
+            <span class="flash-hint">▶ CLICK TO FLIP BACK</span>
+          </div>
         </div>
       </div>
       <div class="flash-nav">
@@ -308,7 +340,7 @@ const WORDS = [
 
 // ============= BIG MAP: 30×25 tiles =============
 const TILE = 36, COLS = 30, ROWS = 25;
-const VP_W = 720, VP_H = 680;
+const VP_W = 740, VP_H = 700;
 
 // 0=grass 1=path 2=wall 3=dark-grass 4=flower 7=boss-arena
 const MAP = [
@@ -377,9 +409,7 @@ function initEntities(){
 }
 
 function updateCamera(){
-  const p=state.player, wW=COLS*TILE, wH=ROWS*TILE;
-  state.cam.x=Math.max(0,Math.min(wW-VP_W, p.x*TILE+TILE/2-VP_W/2));
-  state.cam.y=Math.max(0,Math.min(wH-VP_H, p.y*TILE+TILE/2-VP_H/2));
+  // Camera is now updated inside the game loop using pixel position
 }
 
 // ---- Canvas ----
@@ -464,31 +494,36 @@ function drawMap(){
       }
     }
   }
-  const p=state.player, px=p.x*TILE-cx0, py=p.y*TILE-cy0;
-  ctx.fillStyle='#00000066';ctx.beginPath();ctx.ellipse(px+TILE/2,py+TILE-4,11,4,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#50e8ff';ctx.fillRect(px+10,py+11,16,17);
-  ctx.fillStyle='#f5deb3';ctx.fillRect(px+11,py+5,14,13);
-  ctx.fillStyle='#ffa500';ctx.fillRect(px+9,py+3,18,5);
-  ctx.fillStyle='#3050a0';ctx.fillRect(px+12,py+26,5,7);ctx.fillRect(px+19,py+26,5,7);
-  ctx.fillStyle='#50e8ff';ctx.fillRect(px+6,py+13,5,9);ctx.fillRect(px+25,py+13,5,9);
-  ctx.font='5px "Press Start 2P"';ctx.fillStyle='#50e8ff';ctx.textAlign='center';
-  ctx.fillText('YOU',px+TILE/2,py-2);ctx.textAlign='left';
+  // Player
+  drawPlayer();
 }
 
-// ---- Movement ----
+// ---- Movement (smooth pixel interpolation) ----
+// Player has tile position (tx,ty) and a pixel position (px,py) that lerps toward target.
+// walkFrame cycles through leg frames, walkTimer tracks animation phase.
+function initPlayerAnim(){
+  const p=state.player;
+  p.px = p.x*TILE; p.py = p.y*TILE; // pixel pos
+  p.tx = p.x;      p.ty = p.y;      // target tile
+  p.facing = 'down';
+  p.moving = false;
+  p.walkPhase = 0; // 0-3 leg frame cycle
+  p.walkTimer = 0;
+  p.stepT = 0;     // 0..1 interpolation progress
+}
+
 function isWalkable(x,y){
   if(x<0||x>=COLS||y<0||y>=ROWS) return false;
   const t=MAP[y][x];
   if(t===2) return false;
   for(const e of state.enemies) if(!e.defeated&&e.x===x&&e.y===y) return false;
   for(const n of state.npcs) if(n.x===x&&n.y===y) return false;
-  // Boss blocks its tile (locked or not)
   if(state.boss && !state.boss.defeated && state.boss.x===x && state.boss.y===y) return false;
   return true;
 }
+
 function checkInteract(){
   const p=state.player;
-  // Check boss first
   if(state.boss && !state.boss.defeated && !state.boss.locked){
     if(Math.abs(state.boss.x-p.x)+Math.abs(state.boss.y-p.y)<=1){startBossBattle();return;}
   }
@@ -496,34 +531,162 @@ function checkInteract(){
   for(const n of state.npcs){if(Math.abs(n.x-p.x)+Math.abs(n.y-p.y)<=1){startStudy();return;}}
 }
 
-// ---- Loop ----
+function drawPlayer(){
+  const p = state.player;
+  const px = p.px - state.cam.x;
+  const py = p.py - state.cam.y;
+  const phase = p.walkPhase; // 0,1,2,3
+
+  // Leg bob: alternating steps
+  const legL_y = (phase===1) ? -3 : (phase===3) ? 2 : 0;
+  const legR_y = (phase===3) ? -3 : (phase===1) ? 2 : 0;
+  const legL_x = (phase===1) ? -2 : (phase===3) ? 1 : 0;
+  const legR_x = (phase===3) ? -2 : (phase===1) ? 1 : 0;
+
+  // Body bob
+  const bodyBob = (phase===1||phase===3) ? -1 : 0;
+
+  // Shadow
+  ctx.fillStyle='#00000044';
+  ctx.beginPath();ctx.ellipse(px+TILE/2,py+TILE-3,11,4,0,0,Math.PI*2);ctx.fill();
+
+  // Legs (drawn behind body)
+  ctx.fillStyle='#3050a0';
+  ctx.fillRect(px+12+legL_x, py+26+bodyBob+legL_y, 5, 8);
+  ctx.fillRect(px+19+legR_x, py+26+bodyBob+legR_y, 5, 8);
+
+  // Boots
+  ctx.fillStyle='#1a2060';
+  ctx.fillRect(px+11+legL_x, py+32+bodyBob+legL_y, 7, 3);
+  ctx.fillRect(px+18+legR_x, py+32+bodyBob+legR_y, 7, 3);
+
+  // Body / tunic
+  ctx.fillStyle='#50e8ff';
+  ctx.fillRect(px+10, py+11+bodyBob, 16, 16);
+
+  // Belt
+  ctx.fillStyle='#8B5E3C';
+  ctx.fillRect(px+10, py+23+bodyBob, 16, 3);
+
+  // Arms swing
+  const armL_y = (phase===1) ? 2 : (phase===3) ? -1 : 0;
+  const armR_y = (phase===3) ? 2 : (phase===1) ? -1 : 0;
+  ctx.fillStyle='#50e8ff';
+  ctx.fillRect(px+5, py+13+bodyBob+armL_y, 5, 10);
+  ctx.fillRect(px+26, py+13+bodyBob+armR_y, 5, 10);
+
+  // Hands
+  ctx.fillStyle='#f5deb3';
+  ctx.fillRect(px+5, py+22+bodyBob+armL_y, 5, 4);
+  ctx.fillRect(px+26, py+22+bodyBob+armR_y, 5, 4);
+
+  // Head
+  ctx.fillStyle='#f5deb3';
+  ctx.fillRect(px+11, py+4+bodyBob, 14, 13);
+
+  // Eyes (direction-aware)
+  ctx.fillStyle='#1a1a3a';
+  if(p.facing==='left'){
+    ctx.fillRect(px+12, py+8+bodyBob, 2, 2);
+  } else if(p.facing==='right'){
+    ctx.fillRect(px+22, py+8+bodyBob, 2, 2);
+  } else if(p.facing==='up'){
+    ctx.fillRect(px+14, py+6+bodyBob, 2, 2);
+    ctx.fillRect(px+20, py+6+bodyBob, 2, 2);
+  } else {
+    ctx.fillRect(px+14, py+9+bodyBob, 2, 2);
+    ctx.fillRect(px+20, py+9+bodyBob, 2, 2);
+  }
+
+  // Hat
+  ctx.fillStyle='#ffa500';
+  ctx.fillRect(px+9, py+2+bodyBob, 18, 4);
+  ctx.fillStyle='#cc8800';
+  ctx.fillRect(px+13, py-2+bodyBob, 10, 5);
+
+  // "YOU" label
+  ctx.font='5px "Press Start 2P"'; ctx.fillStyle='#50e8ff'; ctx.textAlign='center';
+  ctx.fillText('YOU', px+TILE/2, py-3); ctx.textAlign='left';
+}
+
+// ---- Game Loop (full 60fps with smooth movement) ----
+const MOVE_SPEED = 0.014; // tiles per ms  → full tile in ~1400ms
 let lastT=0;
+
 function loop(ts){
   requestAnimationFrame(loop);
-  if(ts-lastT<130) return; lastT=ts;
-  if(state.mode!=='explore'){drawMap();return;}
-  // Also check boss proximity for notification
+  const dt = Math.min(ts - lastT, 50); // cap delta so window blur doesn't jump
+  lastT = ts;
+
+  if(state.mode!=='explore'){
+    drawMap();
+    return;
+  }
+
+  const p = state.player;
+
+  // Boss proximity notice
   if(state.boss&&!state.boss.locked&&!state.boss.defeated){
-    const p2=state.player,bd=Math.abs(state.boss.x-p2.x)+Math.abs(state.boss.y-p2.y);
-    if(bd<=3){
-      document.getElementById('word-emoji').textContent='🐉';
-      document.getElementById('word-text').textContent='THE BOSS';
-      document.getElementById('word-pos').textContent='';
-      document.getElementById('word-def').textContent='Face the Word Dragon! Answer all 20 words to win!';
-      document.getElementById('word-ex').textContent='';
+    const bd=Math.abs(state.boss.x-p.x)+Math.abs(state.boss.y-p.y);
+    if(bd<=3){ /* boss is near */ }
+  }
+
+  // --- Smooth movement ---
+  const atTarget = (p.px === p.x*TILE && p.py === p.y*TILE);
+
+  if(atTarget){
+    // Pick a new direction
+    let nx=p.x, ny=p.y, moved=false;
+    if     (state.keys['ArrowLeft'] ||state.keys['KeyA']){nx=p.x-1;p.facing='left';}
+    else if(state.keys['ArrowRight']||state.keys['KeyD']){nx=p.x+1;p.facing='right';}
+    else if(state.keys['ArrowUp']   ||state.keys['KeyW']){ny=p.y-1;p.facing='up';}
+    else if(state.keys['ArrowDown'] ||state.keys['KeyS']){ny=p.y+1;p.facing='down';}
+
+    if((nx!==p.x||ny!==p.y) && isWalkable(nx,ny)){
+      p.x=nx; p.y=ny; moved=true;
+    }
+    if(moved){
+      p.moving=true;
+      checkInteract();
+    } else {
+      p.moving=false;
     }
   }
-  const p=state.player; let mv=false;
-  if     (state.keys['ArrowLeft'] ||state.keys['KeyA']){if(isWalkable(p.x-1,p.y)){p.x--;mv=true;}}
-  else if(state.keys['ArrowRight']||state.keys['KeyD']){if(isWalkable(p.x+1,p.y)){p.x++;mv=true;}}
-  else if(state.keys['ArrowUp']   ||state.keys['KeyW']){if(isWalkable(p.x,p.y-1)){p.y--;mv=true;}}
-  else if(state.keys['ArrowDown'] ||state.keys['KeyS']){if(isWalkable(p.x,p.y+1)){p.y++;mv=true;}}
-  if(mv) checkInteract();
-  updateCamera();
-  // preview nearest word
+
+  // Interpolate pixel pos toward tile pos
+  const targetPx = p.x*TILE, targetPy = p.y*TILE;
+  const dx = targetPx - p.px, dy = targetPy - p.py;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  const step = MOVE_SPEED * dt * TILE;
+
+  if(dist <= step){
+    p.px = targetPx; p.py = targetPy;
+  } else {
+    p.px += (dx/dist)*step;
+    p.py += (dy/dist)*step;
+  }
+
+  // Walk animation frames
+  if(p.moving || dist > 1){
+    p.walkTimer += dt;
+    if(p.walkTimer > 700){
+      p.walkTimer = 0;
+      p.walkPhase = (p.walkPhase+1)%4;
+    }
+  } else {
+    p.walkPhase=0; p.walkTimer=0;
+  }
+
+  // Camera follows pixel position smoothly
+  const wW=COLS*TILE, wH=ROWS*TILE;
+  state.cam.x=Math.max(0,Math.min(wW-VP_W, p.px+TILE/2-VP_W/2));
+  state.cam.y=Math.max(0,Math.min(wH-VP_H, p.py+TILE/2-VP_H/2));
+
+  // Preview nearest enemy word
   let ne=null,nd=999;
   state.enemies.forEach(e=>{if(e.defeated)return;const d=Math.abs(e.x-p.x)+Math.abs(e.y-p.y);if(d<nd){nd=d;ne=e;}});
   if(ne&&nd<=3) showWordCard(ne.wordIdx);
+
   drawMap();
 }
 
@@ -682,31 +845,55 @@ function startStudy(){
   state.mode='study'; state.flashIdx=0;
   document.getElementById('battle-panel').style.display='none';
   document.getElementById('flashcard-panel').style.cssText='display:flex;flex-direction:column';
-  updateFlash();
+  // Reset card state
+  const card=document.getElementById('flash-card');
+  card.classList.remove('flipped');
+  card.style.transform=''; card.style.opacity='1'; card.style.transition='';
+  updateFlash(0);
 }
-function updateFlash(){
-  const w=WORDS[state.flashIdx];
-  document.getElementById('flash-emoji').textContent=w.emoji;
-  document.getElementById('flash-word').textContent=w.word;
-  document.getElementById('flash-def').textContent=w.def;
-  document.getElementById('flash-ex').textContent=w.ex;
-  document.getElementById('flash-card').classList.remove('flipped');
-  if(state.wordStates[state.flashIdx]==='unseen') state.wordStates[state.flashIdx]='seen';
-  showWordCard(state.flashIdx); updateWordDots();
+function updateFlash(dir){
+  const card = document.getElementById('flash-card');
+  const slide = document.getElementById('flash-slide');
+  card.classList.remove('flipped');
+
+  const populate = () => {
+    const w = WORDS[state.flashIdx];
+    document.getElementById('flash-emoji').textContent = w.emoji;
+    document.getElementById('flash-emoji-back').textContent = w.emoji;
+    document.getElementById('flash-word').textContent = w.word.toUpperCase();
+    document.getElementById('flash-def').textContent = w.def;
+    document.getElementById('flash-ex').textContent = `"${w.ex}"`;
+    if(state.wordStates[state.flashIdx]==='unseen') state.wordStates[state.flashIdx]='seen';
+    updateWordDots();
+  };
+
+  if(dir === 0){ populate(); return; }
+
+  const out = dir===1 ? 'translateX(-80px)' : 'translateX(80px)';
+  const in_ = dir===1 ? 'translateX(80px)'  : 'translateX(-80px)';
+
+  slide.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+  slide.style.transform = out;
+  slide.style.opacity = '0';
+
+  setTimeout(() => {
+    populate();
+    slide.style.transition = 'none';
+    slide.style.transform = in_;
+    slide.style.opacity = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      slide.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+      slide.style.transform = 'translateX(0)';
+      slide.style.opacity = '1';
+    }));
+  }, 160);
 }
 function flipCard(){document.getElementById('flash-card').classList.toggle('flipped');}
-function flashNav(d){state.flashIdx=(state.flashIdx+d+WORDS.length)%WORDS.length;updateFlash();}
+function flashNav(d){state.flashIdx=(state.flashIdx+d+WORDS.length)%WORDS.length;updateFlash(d);}
 function closeStudy(){state.mode='explore';document.getElementById('flashcard-panel').style.display='none';}
 
 // ---- UI ----
-function showWordCard(i){
-  const w=WORDS[i];
-  document.getElementById('word-emoji').textContent=w.emoji;
-  document.getElementById('word-text').textContent=w.word.toUpperCase();
-  document.getElementById('word-pos').textContent=`[ ${w.pos} ]`;
-  document.getElementById('word-def').textContent=w.def;
-  document.getElementById('word-ex').textContent=`"${w.ex}"`;
-}
+function showWordCard(i){ /* panel removed */ }
 function updateHud(){
   const p=state.player, hp=(p.hp/p.maxHp)*100, xp=(p.xp%(p.level*100))/(p.level*100)*100;
   document.getElementById('hp-bar').style.width=hp+'%';
@@ -748,12 +935,7 @@ function restartGame(){
   state.wordStates=new Array(20).fill('unseen');
   state.correctCount=0;state.wrongCount=0;state.mode='explore';
   state.bossQuizOrder=[];
-  initEntities();updateHud();updateWordDots();endBattle();
-  document.getElementById('word-def').textContent='Explore the map to discover vocabulary!';
-  document.getElementById('word-emoji').textContent='❓';
-  document.getElementById('word-text').textContent='---';
-  document.getElementById('word-pos').textContent='';
-  document.getElementById('word-ex').textContent='';
+  initEntities();initPlayerAnim();updateHud();updateWordDots();endBattle();
   updateCamera();
 }
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -778,7 +960,7 @@ document.getElementById('map-canvas').addEventListener('click',()=>{
 });
 
 // ---- Init ----
-initEntities();updateCamera();updateHud();updateWordDots();
+initEntities();initPlayerAnim();updateCamera();updateHud();updateWordDots();
 requestAnimationFrame(loop);
 </script>
 </body>
