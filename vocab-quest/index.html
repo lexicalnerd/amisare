@@ -852,41 +852,45 @@ function startStudy(){
   updateFlash(0);
 }
 function updateFlash(dir){
-  const card = document.getElementById('flash-card');
-  const slide = document.getElementById('flash-slide');
+  const card=document.getElementById('flash-card');
   card.classList.remove('flipped');
-
-  const populate = () => {
-    const w = WORDS[state.flashIdx];
-    document.getElementById('flash-emoji').textContent = w.emoji;
-    document.getElementById('flash-emoji-back').textContent = w.emoji;
-    document.getElementById('flash-word').textContent = w.word.toUpperCase();
-    document.getElementById('flash-def').textContent = w.def;
-    document.getElementById('flash-ex').textContent = `"${w.ex}"`;
+  if(dir===0){
+    // First open — just populate, no animation
+    const w=WORDS[state.flashIdx];
+    document.getElementById('flash-emoji').textContent=w.emoji;
+    document.getElementById('flash-emoji-back').textContent=w.emoji;
+    document.getElementById('flash-word').textContent=w.word.toUpperCase();
+    document.getElementById('flash-word-back').textContent=w.word.toUpperCase();
+    document.getElementById('flash-pos').textContent=`[ ${w.pos} ]`;
+    document.getElementById('flash-def').textContent=w.def;
+    document.getElementById('flash-ex').textContent=`"${w.ex}"`;
+    if(state.wordStates[state.flashIdx]==='unseen') state.wordStates[state.flashIdx]='seen';
+    updateWordDots(); return;
+  }
+  // Slide-out, swap, slide-in
+  const slideOut = dir===1?'translateX(-60px)':'translateX(60px)';
+  card.style.transition='transform 0.18s ease, opacity 0.18s ease';
+  card.style.transform=slideOut; card.style.opacity='0';
+  setTimeout(()=>{
+    const w=WORDS[state.flashIdx];
+    document.getElementById('flash-emoji').textContent=w.emoji;
+    document.getElementById('flash-emoji-back').textContent=w.emoji;
+    document.getElementById('flash-word').textContent=w.word.toUpperCase();
+    document.getElementById('flash-word-back').textContent=w.word.toUpperCase();
+    document.getElementById('flash-pos').textContent=`[ ${w.pos} ]`;
+    document.getElementById('flash-def').textContent=w.def;
+    document.getElementById('flash-ex').textContent=`"${w.ex}"`;
     if(state.wordStates[state.flashIdx]==='unseen') state.wordStates[state.flashIdx]='seen';
     updateWordDots();
-  };
-
-  if(dir === 0){ populate(); return; }
-
-  const out = dir===1 ? 'translateX(-80px)' : 'translateX(80px)';
-  const in_ = dir===1 ? 'translateX(80px)'  : 'translateX(-80px)';
-
-  slide.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
-  slide.style.transform = out;
-  slide.style.opacity = '0';
-
-  setTimeout(() => {
-    populate();
-    slide.style.transition = 'none';
-    slide.style.transform = in_;
-    slide.style.opacity = '0';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      slide.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-      slide.style.transform = 'translateX(0)';
-      slide.style.opacity = '1';
+    const slideIn = dir===1?'translateX(60px)':'translateX(-60px)';
+    card.style.transition='none';
+    card.style.transform=slideIn; card.style.opacity='0';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      card.style.transition='transform 0.22s ease, opacity 0.22s ease';
+      card.style.transform='translateX(0)'; card.style.opacity='1';
+      setTimeout(()=>{ card.style.transform=''; card.style.transition=''; card.style.opacity=''; }, 240);
     }));
-  }, 160);
+  }, 180);
 }
 function flipCard(){document.getElementById('flash-card').classList.toggle('flipped');}
 function flashNav(d){state.flashIdx=(state.flashIdx+d+WORDS.length)%WORDS.length;updateFlash(d);}
