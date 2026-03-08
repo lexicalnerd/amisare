@@ -1535,7 +1535,7 @@ function onWiiMotion(e) {
 
   // gamma = left/right swing, beta = up/down swing
   let gx = rr.gamma || 0;
-  let gy = rr.beta  || 0;
+  let gy = rr.alpha || 0;  // alpha is the up/down axis on this device
 
   if (Math.abs(gx) < WII_DEAD_X) gx = 0;
   if (Math.abs(gy) < WII_DEAD_Y) gy = 0;
