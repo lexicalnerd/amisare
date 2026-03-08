@@ -1478,9 +1478,11 @@ function sendUndo() {
 let wiiPenDown = false;
 let wiiLastTime = 0;
 
-const WII_SENSITIVITY = 0.0004; // halved again
-const WII_DEADZONE    = 4.0;    // higher threshold before any movement registers
-const WII_SMOOTH      = 0.2;    // more smoothing = less jitter in lines
+const WII_SENS_X      = 0.0004; // left/right — working well
+const WII_SENS_Y      = 0.00015; // up/down — beta fires much harder, needs lower scale
+const WII_DEAD_X      = 4.0;    // deg/s deadzone for gamma
+const WII_DEAD_Y      = 6.0;    // deg/s deadzone for beta — needs higher to feel stable
+const WII_SMOOTH      = 0.2;
 
 function setDrawMode(mode) { /* wiimote only */ }
 
@@ -1527,14 +1529,11 @@ function onWiiMotion(e) {
   let gx = rr.gamma || 0;
   let gy = rr.beta  || 0;
 
-  // Dead zone
-  if (Math.abs(gx) < WII_DEADZONE) gx = 0;
-  if (Math.abs(gy) < WII_DEADZONE) gy = 0;
+  if (Math.abs(gx) < WII_DEAD_X) gx = 0;
+  if (Math.abs(gy) < WII_DEAD_Y) gy = 0;
 
-  // Left/right: negate gamma so tilting right moves cursor right
-  // Up/down: negate beta so tilting up moves cursor up (already working)
-  const rawX = Math.max(0, Math.min(1, tiltX - gx * dt * WII_SENSITIVITY));
-  const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENSITIVITY));
+  const rawX = Math.max(0, Math.min(1, tiltX - gx * dt * WII_SENS_X));
+  const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENS_Y));
 
   lastTiltX = tiltX;
   lastTiltY = tiltY;
