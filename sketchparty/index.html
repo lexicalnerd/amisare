@@ -1478,10 +1478,10 @@ function sendUndo() {
 let wiiPenDown = false;
 let wiiLastTime = 0;
 
-const WII_SENS_X      = 0.0004; // left/right — working well
-const WII_SENS_Y      = 0.00015; // up/down — beta fires much harder, needs lower scale
-const WII_DEAD_X      = 4.0;    // deg/s deadzone for gamma
-const WII_DEAD_Y      = 6.0;    // deg/s deadzone for beta — needs higher to feel stable
+const WII_SENS_X      = 0.0004;
+const WII_SENS_Y      = 0.0003;
+const WII_DEAD_X      = 4.0;
+const WII_DEAD_Y      = 3.0;
 const WII_SMOOTH      = 0.2;
 
 function setDrawMode(mode) { /* wiimote only */ }
