@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SketchParty 🎨</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --bg: #0f0e1a;
+  --surface: #1c1b2e;
+  --surface2: #26253d;
+  --lime: #c8ff00;
+  --coral: #ff6b6b;
+  --blue: #00d4ff;
+  --purple: #a78bfa;
+  --white: #f0f0ff;
+  --muted: #6b6a8a;
+  --border: #35335a;
+  --canvas-bg: #ffffff;
+  --radius: 16px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen { display: none; width: 100%; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ===== TYPOGRAPHY ===== */
+.pixel { font-family: 'Press Start 2P', monospace; }
+h1 { font-family: 'Press Start 2P', monospace; }
+
+/* ===== LOGO ===== */
+.logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.2rem, 4vw, 2.5rem);
+  color: var(--lime);
+  text-shadow: 0 0 30px rgba(200,255,0,0.5), 4px 4px 0 rgba(200,255,0,0.2);
+  letter-spacing: -1px;
+  line-height: 1.4;
+}
+.logo span { color: var(--coral); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  letter-spacing: 0.5px;
+  touch-action: manipulation;
+}
+.btn:active { transform: scale(0.95); }
+.btn-lime { background: var(--lime); color: #0f0e1a; box-shadow: 0 4px 0 #88bb00; }
+.btn-lime:active { box-shadow: none; transform: translateY(4px); }
+.btn-coral { background: var(--coral); color: #fff; box-shadow: 0 4px 0 #cc3333; }
+.btn-coral:active { box-shadow: none; transform: translateY(4px); }
+.btn-blue { background: var(--blue); color: #0f0e1a; box-shadow: 0 4px 0 #0099bb; }
+.btn-blue:active { box-shadow: none; transform: translateY(4px); }
+.btn-ghost { background: transparent; color: var(--white); border: 2px solid var(--border); }
+.btn-ghost:hover { border-color: var(--purple); }
+.btn-lg { padding: 18px 36px; font-size: 1.2rem; }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* ===== INPUTS ===== */
+.input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: var(--purple); }
+.input::placeholder { color: var(--muted); font-weight: 600; }
+
+textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
+
+/* ===== CARD ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+/* ===== BADGE ===== */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+.badge-lime { background: rgba(200,255,0,0.15); color: var(--lime); border: 1px solid rgba(200,255,0,0.3); }
+.badge-coral { background: rgba(255,107,107,0.15); color: var(--coral); border: 1px solid rgba(255,107,107,0.3); }
+.badge-blue { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid rgba(0,212,255,0.3); }
+
+/* ===== PLAYER CHIP ===== */
+.player-chip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  animation: slideIn 0.3s ease;
+}
+.player-chip .avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.player-chip .pname { font-weight: 800; font-size: 0.95rem; }
+.player-chip .pscore { margin-left: auto; font-weight: 900; color: var(--lime); font-size: 0.9rem; }
+.player-chip.drawing { border-color: var(--coral); background: rgba(255,107,107,0.08); }
+.player-chip.guessed { border-color: var(--lime); background: rgba(200,255,0,0.08); }
+
+/* ===== ROOM CODE ===== */
+.room-code-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  color: var(--lime);
+  letter-spacing: 8px;
+  text-align: center;
+  padding: 16px 24px;
+  background: rgba(200,255,0,0.05);
+  border: 2px solid rgba(200,255,0,0.2);
+  border-radius: var(--radius);
+}
+
+/* ===== TIMER ===== */
+.timer-ring {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.4rem;
+  border: 4px solid var(--lime);
+  color: var(--lime);
+  flex-shrink: 0;
+  transition: color 0.3s, border-color 0.3s;
+}
+.timer-ring.warning { color: #ffaa00; border-color: #ffaa00; }
+.timer-ring.danger { color: var(--coral); border-color: var(--coral); animation: pulse 0.5s infinite; }
+
+/* ===== WORD DISPLAY ===== */
+.word-banner {
+  background: var(--surface);
+  border: 2px solid var(--lime);
+  border-radius: var(--radius);
+  padding: 12px 24px;
+  text-align: center;
+}
+.word-banner .label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.word-banner .word { font-family: 'Press Start 2P', monospace; font-size: clamp(0.9rem, 2vw, 1.4rem); color: var(--lime); }
+.word-banner.hidden-word .word { color: var(--muted); letter-spacing: 8px; }
+
+/* ===== GUESS FEED ===== */
+.guess-item {
+  display: flex; gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  animation: fadeSlide 0.3s ease;
+  font-size: 0.9rem;
+}
+.guess-item .gname { font-weight: 800; flex-shrink: 0; }
+.guess-item .gtext { color: var(--muted); }
+.guess-item.correct { background: rgba(200,255,0,0.1); border: 1px solid rgba(200,255,0,0.3); }
+.guess-item.correct .gtext { color: var(--lime); font-weight: 800; }
+
+/* ===== CANVAS AREA ===== */
+#host-canvas {
+  width: 100%; height: 100%;
+  background: white;
+  border-radius: var(--radius-sm);
+  cursor: crosshair;
+  touch-action: none;
+}
+#player-canvas {
+  width: 100%; height: 100%;
+  background: white;
+  border-radius: var(--radius-sm);
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ===== COLOR PALETTE ===== */
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.color-swatch:active { transform: scale(0.85); }
+.color-swatch.selected { border-color: white; transform: scale(1.2); }
+
+.brush-size-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s;
+}
+.brush-size-btn.selected { border-color: var(--purple); background: rgba(167,139,250,0.15); }
+.brush-dot { border-radius: 50%; background: var(--white); display: block; }
+
+/* ===== TILT CURSOR ===== */
+#tilt-cursor {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--coral);
+  border: 3px solid white;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(255,107,107,0.7);
+  transition: background 0.2s;
+  z-index: 10;
+}
+#tilt-cursor.drawing { background: var(--lime); box-shadow: 0 0 15px rgba(200,255,0,0.9); }
+
+/* ===== BIG DRAW BUTTON ===== */
+#draw-hold-btn {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===== OVERLAY ===== */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,14,26,0.95);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+  padding: 24px;
+}
+.overlay.hidden { display: none; }
+
+/* ===== SCORE OVERLAY ===== */
+.score-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  width: 100%;
+}
+.score-rank { font-family: 'Press Start 2P', monospace; font-size: 1rem; width: 30px; color: var(--muted); }
+.score-rank.gold { color: #ffd700; }
+.score-rank.silver { color: #c0c0c0; }
+.score-rank.bronze { color: #cd7f32; }
+.score-name { font-weight: 800; flex: 1; }
+.score-pts { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: var(--lime); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
+@keyframes fadeSlide { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes popIn { 0% { transform: scale(0.5); opacity:0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity:1; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+.pop-in { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* ===== NOTIFICATION ===== */
+#notification {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--surface);
+  border: 2px solid var(--lime);
+  border-radius: var(--radius);
+  padding: 14px 24px;
+  font-weight: 800;
+  font-size: 1rem;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+  color: var(--lime);
+}
+#notification.show { opacity: 1; }
+
+/* ===== AVATAR COLORS ===== */
+.av-0 { background: #ff6b6b; }
+.av-1 { background: #c8ff00; color: #0f0e1a; }
+.av-2 { background: #00d4ff; color: #0f0e1a; }
+.av-3 { background: #a78bfa; }
+.av-4 { background: #ff9d00; color: #0f0e1a; }
+.av-5 { background: #00ffaa; color: #0f0e1a; }
+.av-6 { background: #ff00cc; }
+.av-7 { background: #4488ff; }
+
+/* ===== SCREENS ===== */
+
+/* --- LANDING --- */
+#screen-landing {
+  align-items: center; justify-content: center; gap: 40px;
+  padding: 40px 24px;
+  background: radial-gradient(ellipse at 30% 20%, rgba(200,255,0,0.07) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.07) 0%, transparent 60%);
+}
+.landing-hero { text-align: center; }
+.landing-emoji { font-size: 5rem; display: block; margin-bottom: 16px; }
+.landing-tagline { color: var(--muted); font-weight: 700; font-size: 1rem; margin-top: 12px; }
+.landing-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+
+/* --- HOST SETUP --- */
+#screen-host-setup {
+  padding: 24px;
+  gap: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+.setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 600px) { .setup-grid { grid-template-columns: 1fr; } }
+#qrcode-container { display: flex; justify-content: center; margin: 12px 0; }
+#qrcode-container canvas, #qrcode-container img { border-radius: 8px; border: 4px solid white; }
+.join-url { font-size: 0.75rem; color: var(--muted); text-align: center; word-break: break-all; margin-top: 8px; }
+.waiting-players-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.waiting-empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 20px; }
+
+/* --- HOST GAME --- */
+#screen-host-game {
+  flex-direction: row !important;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+}
+.host-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  overflow-y: auto;
+}
+.host-main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  min-width: 0;
+}
+.host-topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.canvas-wrapper {
+  flex: 1;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+.host-right {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 16px;
+  gap: 8px;
+  overflow: hidden;
+}
+.guess-feed { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 4px; }
+
+@media (max-width: 900px) {
+  #screen-host-game { flex-direction: column !important; height: auto; min-height: 100vh; }
+  .host-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+  .host-right { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 200px; }
+  .canvas-wrapper { min-height: 50vw; }
+}
+
+/* --- JOIN --- */
+#screen-join {
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+.join-card { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+
+/* --- PLAYER WAITING --- */
+#screen-player-waiting {
+  align-items: center; justify-content: center;
+  padding: 24px; gap: 24px; text-align: center;
+}
+.waiting-pulse {
+  font-size: 4rem;
+  animation: pulse 1.5s infinite;
+}
+
+/* --- PLAYER DRAWING --- */
+#screen-player-drawing {
+  padding: 12px;
+  gap: 10px;
+}
+.draw-topbar { display: flex; align-items: center; gap: 10px; }
+.canvas-container-player {
+  flex: 1;
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: white;
+  border: 3px solid var(--lime);
+  min-height: 0;
+}
+.draw-toolbar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.color-palette { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.brush-sizes { display: flex; gap: 6px; align-items: center; }
+.toolbar-sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+.tilt-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+
+/* Hold-to-draw button */
+#draw-hold-btn {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 3px solid var(--border);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, transform 0.1s;
+  touch-action: none;
+  user-select: none;
+}
+#draw-hold-btn.active {
+  background: rgba(200,255,0,0.15);
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+.mode-toggle { display: flex; gap: 6px; }
+.mode-btn {
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active { border-color: var(--lime); color: var(--lime); background: rgba(200,255,0,0.08); }
+
+/* --- PLAYER GUESSING --- */
+#screen-player-guessing {
+  padding: 24px; gap: 16px;
+  align-items: stretch;
+}
+.guess-drawer-info {
+  text-align: center;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+}
+.drawing-emoji { font-size: 4rem; animation: pulse 2s infinite; }
+.guess-form { display: flex; gap: 10px; }
+.correct-feedback {
+  text-align: center; padding: 20px;
+  background: rgba(200,255,0,0.1);
+  border: 2px solid var(--lime);
+  border-radius: var(--radius);
+  color: var(--lime);
+  font-weight: 800;
+  display: none;
+}
+
+/* ===== QR INVITE INFO ===== */
+.invite-info {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* ROUND END overlay */
+#round-end-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,14,26,0.97);
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+}
+#round-end-overlay.show { display: flex; }
+</style>
+</head>
+<body>
+
+<div id="notification"></div>
+
+<!-- ===== LANDING ===== -->
+<div id="screen-landing" class="screen active">
+  <div class="landing-hero">
+    <span class="landing-emoji">🎨</span>
+    <div class="logo">Sketch<span>Party</span></div>
+    <p class="landing-tagline">Draw with your phone · Guess on the big screen</p>
+  </div>
+  <div class="landing-buttons">
+    <button class="btn btn-lime btn-lg" onclick="goHostSetup()">🖥️ &nbsp;Host a Game</button>
+    <button class="btn btn-ghost btn-lg" onclick="showScreen('join')">📱 &nbsp;Join Game</button>
+  </div>
+  <p style="color:var(--muted);font-size:0.75rem;text-align:center;">Host on your TV · Players join on phones</p>
+</div>
+
+<!-- ===== HOST SETUP ===== -->
+<div id="screen-host-setup" class="screen">
+  <div style="display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);">
+    <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
+    <div class="logo" style="font-size:1rem;">Sketch<span>Party</span></div>
+    <div style="margin-left:auto;" id="setup-status"><span class="badge badge-lime">Waiting for players</span></div>
+  </div>
+
+  <div style="padding:24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:20px;max-width:720px;margin:0 auto;width:100%;">
+    <!-- Room code -->
+    <div class="card" style="text-align:center;gap:12px;display:flex;flex-direction:column;">
+      <div class="section-title" style="margin:0;">Room Code</div>
+      <div class="room-code-display" id="room-code-text">----</div>
+      <div class="invite-info">Share this code <strong>or</strong> scan QR with phones</div>
+      <div id="qrcode-container"><div id="qrcode"></div></div>
+      <div class="join-url" id="join-url-display"></div>
+    </div>
+
+    <div class="setup-grid">
+      <!-- Players -->
+      <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="section-title">Players Joined</div>
+        <div id="waiting-players-list" class="waiting-players-list">
+          <div class="waiting-empty">No players yet…</div>
+        </div>
+      </div>
+
+      <!-- Word list -->
+      <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="section-title">Custom Words (one per line)</div>
+        <textarea class="input" id="custom-words" placeholder="cat&#10;rocket ship&#10;dancing banana&#10;&#10;(leave empty for defaults)"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-lime btn-lg" id="start-btn" onclick="startGame()" disabled>
+      🎮 &nbsp;Start Game
+    </button>
+    <p id="start-hint" style="text-align:center;color:var(--muted);font-size:0.85rem;">Need at least 2 players to start</p>
+  </div>
+</div>
+
+<!-- ===== HOST GAME ===== -->
+<div id="screen-host-game" class="screen">
+  <!-- Left sidebar: players -->
+  <div class="host-sidebar">
+    <div class="logo" style="font-size:0.7rem;margin-bottom:4px;">Sketch<span>Party</span></div>
+    <div class="section-title">Players</div>
+    <div id="host-player-list" style="display:flex;flex-direction:column;gap:6px;flex:1;"></div>
+    <div style="margin-top:auto;">
+      <div class="section-title">Room</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:0.9rem;color:var(--lime);letter-spacing:4px;" id="host-room-code-small"></div>
+    </div>
+  </div>
+
+  <!-- Main canvas area -->
+  <div class="host-main">
+    <div class="host-topbar">
+      <div id="host-word-banner" class="word-banner" style="flex:1;">
+        <div class="label">Drawing</div>
+        <div class="word" id="host-word-text">—</div>
+      </div>
+      <div class="timer-ring" id="host-timer">60</div>
+    </div>
+    <div class="canvas-wrapper">
+      <canvas id="host-canvas"></canvas>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <div id="host-drawer-label" style="color:var(--muted);font-weight:700;font-size:0.9rem;">Waiting…</div>
+    </div>
+  </div>
+
+  <!-- Right: guesses -->
+  <div class="host-right">
+    <div class="section-title">Guesses</div>
+    <div class="guess-feed" id="host-guess-feed"></div>
+  </div>
+</div>
+
+<!-- ===== JOIN ===== -->
+<div id="screen-join" class="screen">
+  <div class="join-card">
+    <div class="logo" style="font-size:1rem;text-align:center;">Sketch<span>Party</span></div>
+    <div style="text-align:center;color:var(--muted);font-weight:700;">Enter the room code from the host screen</div>
+    <input class="input" id="join-code" placeholder="ROOM CODE" style="text-align:center;font-family:'Press Start 2P',monospace;letter-spacing:4px;font-size:1.1rem;" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+    <input class="input" id="player-name" placeholder="Your Name" maxlength="16">
+    <button class="btn btn-lime btn-lg" onclick="joinGame()">Join! 🎉</button>
+    <button class="btn btn-ghost" onclick="showScreen('landing')">← Back</button>
+    <div id="join-error" style="color:var(--coral);font-weight:700;text-align:center;display:none;"></div>
+  </div>
+</div>
+
+<!-- ===== PLAYER WAITING ===== -->
+<div id="screen-player-waiting" class="screen">
+  <div style="padding:24px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;">
+    <div class="waiting-pulse">🎨</div>
+    <div>
+      <div style="font-weight:900;font-size:1.4rem;" id="pw-name">You're in!</div>
+      <div style="color:var(--muted);font-weight:700;margin-top:6px;">Waiting for the host to start…</div>
+    </div>
+    <div class="card" style="width:100%;max-width:400px;">
+      <div class="section-title" style="margin-bottom:12px;">Players</div>
+      <div id="waiting-player-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PLAYER DRAWING ===== -->
+<div id="screen-player-drawing" class="screen">
+  <!-- Top bar -->
+  <div class="draw-topbar">
+    <div class="word-banner" style="flex:1;">
+      <div class="label">Your word</div>
+      <div class="word" id="player-word-text">—</div>
+    </div>
+    <div class="timer-ring" id="player-timer" style="width:56px;height:56px;font-size:1rem;">60</div>
+  </div>
+
+  <!-- Controls toggle -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-touch-btn" onclick="setDrawMode('touch')">👆 Touch</button>
+      <button class="mode-btn" id="mode-tilt-btn" onclick="setDrawMode('tilt')">📱 Tilt</button>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()" style="margin-left:auto;">🗑️ Clear</button>
+    <button class="btn btn-ghost btn-sm" id="undo-btn" onclick="sendUndo()">↩ Undo</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-container-player" id="draw-canvas-container">
+    <canvas id="player-canvas"></canvas>
+    <div class="tilt-overlay">
+      <div id="tilt-cursor" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Toolbar: colors + brush -->
+  <div class="draw-toolbar">
+    <div class="color-palette" id="color-palette"></div>
+    <div class="toolbar-sep"></div>
+    <div class="brush-sizes" id="brush-sizes"></div>
+    <div class="toolbar-sep"></div>
+    <!-- Eraser -->
+    <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜ Erase</button>
+  </div>
+
+  <!-- Tilt hold-to-draw button (hidden in touch mode) -->
+  <div id="tilt-draw-area" style="display:none;">
+    <button id="draw-hold-btn" 
+      ontouchstart="startDrawing()" ontouchend="stopDrawing()" ontouchcancel="stopDrawing()"
+      onmousedown="startDrawing()" onmouseup="stopDrawing()">
+      ✏️ HOLD TO DRAW
+    </button>
+  </div>
+</div>
+
+<!-- ===== PLAYER GUESSING ===== -->
+<div id="screen-player-guessing" class="screen">
+  <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+    <div class="word-banner hidden-word" style="flex:1;">
+      <div class="label">Guess the drawing</div>
+      <div class="word" id="guess-word-dashes">? ? ? ? ?</div>
+    </div>
+    <div class="timer-ring" id="guess-timer" style="width:56px;height:56px;font-size:1rem;">60</div>
+  </div>
+
+  <div class="guess-drawer-info">
+    <div class="drawing-emoji">🖌️</div>
+    <div style="font-weight:800;font-size:1.1rem;" id="guess-drawer-name">Someone is drawing…</div>
+    <div style="color:var(--muted);font-weight:700;font-size:0.9rem;">Watch the big screen!</div>
+  </div>
+
+  <div id="correct-feedback" class="correct-feedback">
+    ✅ Correct! Well done! +<span id="correct-pts">10</span> pts
+  </div>
+
+  <div class="guess-form" id="guess-input-form">
+    <input class="input" id="guess-input" placeholder="Type your guess…" autocomplete="off" onkeydown="if(event.key==='Enter')submitGuess()">
+    <button class="btn btn-lime" onclick="submitGuess()">→</button>
+  </div>
+
+  <div id="player-guess-feed" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;padding:0 4px;"></div>
+</div>
+
+<!-- ===== ROUND END OVERLAY ===== -->
+<div id="round-end-overlay">
+  <div class="logo" style="font-size:0.9rem;">Round Over!</div>
+  <div style="font-size:1.5rem;font-weight:900;color:var(--muted);" id="re-word">The word was: <span style="color:var(--lime);" id="re-word-text">—</span></div>
+  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px;" id="re-scores"></div>
+  <div style="color:var(--muted);font-size:0.85rem;font-weight:700;" id="re-next">Next round starting…</div>
+</div>
+
+<script>
+// =============================================
+//  SKETCHPARTY — GAME ENGINE
+// =============================================
+
+const DEFAULT_WORDS = [
+  'cat','dog','house','tree','car','sun','moon','fish','bird','book',
+  'rocket','pizza','elephant','guitar','rainbow','castle','dragon',
+  'banana','telephone','bicycle','umbrella','lighthouse','volcano','penguin',
+  'sunglasses','backpack','snowman','submarine','waterfall','telescope'
+];
+
+const COLORS = ['#000000','#ffffff','#ef4444','#f97316','#eab308','#22c55e',
+                 '#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f59e0b',
+                 '#6b7280','#92400e','#1e3a8a'];
+const BRUSH_SIZES = [3, 7, 14, 24];
+const AVATAR_EMOJIS = ['🐱','🐶','🦊','🐸','🐺','🦁','🐼','🦄'];
+const ROUND_TIME = 60;
+
+// ---- State ----
+let peer = null;
+let myPeerId = null;
+let isHost = false;
+let roomCode = null;
+let myName = '';
+let myAvatarIdx = 0;
+
+// Host state
+let hostConns = {}; // peerId -> { conn, name, score, avatarIdx, guessed }
+let hostGameWords = [];
+let hostWordIdx = 0;
+let hostPlayerOrder = [];
+let hostDrawerIdx = 0;
+let hostTimer = null;
+let hostTimeLeft = ROUND_TIME;
+let hostGameActive = false;
+let hostStrokeHistory = []; // for undo
+
+// Player state
+let hostConn = null;
+let playerGameWords = [];
+let myTurn = false;
+let hasGuessedCorrectly = false;
+let playerTimeLeft = ROUND_TIME;
+let playerTimer = null;
+
+// Drawing state
+let drawMode = 'touch'; // 'touch' | 'tilt'
+let selectedColor = '#000000';
+let brushSize = BRUSH_SIZES[1];
+let isEraser = false;
+let penDown = false;
+let lastX = -1, lastY = -1;
+let tiltX = 0.5, tiltY = 0.5;
+let lastTiltX = 0.5, lastTiltY = 0.5;
+let tiltIsDrawing = false;
+
+// ---- Helpers ----
+function $(id) { return document.getElementById(id); }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = $('screen-' + name);
+  if (el) el.classList.add('active');
+}
+
+function notify(msg, color='var(--lime)') {
+  const el = $('notification');
+  el.textContent = msg;
+  el.style.borderColor = color;
+  el.style.color = color;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function send(conn, data) {
+  try { conn.send(data); } catch(e) {}
+}
+
+function broadcast(data) {
+  Object.values(hostConns).forEach(p => send(p.conn, data));
+}
+
+function broadcastExcept(exceptPeerId, data) {
+  Object.entries(hostConns).forEach(([pid, p]) => {
+    if (pid !== exceptPeerId) send(p.conn, data);
+  });
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function avatarColor(idx) {
+  const colors = ['#ff6b6b','#c8ff00','#00d4ff','#a78bfa','#ff9d00','#00ffaa','#ff00cc','#4488ff'];
+  return colors[idx % colors.length];
+}
+
+function avatarTextColor(idx) {
+  return [1,2,4,5].includes(idx % 8) ? '#0f0e1a' : '#ffffff';
+}
+
+// ---- QR Code ----
+function generateQR(url) {
+  const container = $('qrcode');
+  container.innerHTML = '';
+  try {
+    new QRCode(container, { text: url, width: 160, height: 160, colorDark: '#0f0e1a', colorLight: '#ffffff' });
+  } catch(e) { container.textContent = url; }
+}
+
+// =============================================
+//  HOST FLOW
+// =============================================
+
+function goHostSetup() {
+  isHost = true;
+  roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+  const peerId = 'sketchparty-' + roomCode;
+
+  showScreen('host-setup');
+  $('room-code-text').textContent = roomCode;
+  $('host-room-code-small').textContent = roomCode;
+
+  const joinUrl = window.location.href.split('?')[0] + '?join=' + roomCode;
+  $('join-url-display').textContent = joinUrl;
+  generateQR(joinUrl);
+
+  peer = new Peer(peerId, { debug: 0 });
+
+  peer.on('open', () => {
+    myPeerId = peerId;
+  });
+
+  peer.on('connection', (conn) => {
+    conn.on('open', () => {
+      conn.on('data', (data) => handleHostMsg(conn, data));
+      conn.on('close', () => onPlayerDisconnect(conn.peer));
+      conn.on('error', () => onPlayerDisconnect(conn.peer));
+    });
+  });
+
+  peer.on('error', (err) => {
+    notify('PeerJS error: ' + err.type, 'var(--coral)');
+  });
+}
+
+function handleHostMsg(conn, data) {
+  switch (data.type) {
+    case 'join':
+      onPlayerJoin(conn, data);
+      break;
+    case 'stroke':
+      if (!hostGameActive) break;
+      drawOnCanvas($('host-canvas'), data.stroke);
+      hostStrokeHistory.push(data.stroke);
+      broadcastExcept(conn.peer, { type: 'stroke', stroke: data.stroke });
+      break;
+    case 'clear':
+      clearCanvas($('host-canvas'));
+      hostStrokeHistory = [];
+      broadcast({ type: 'clear' });
+      break;
+    case 'undo':
+      hostStrokeHistory = hostStrokeHistory.filter(s => s.strokeId !== data.strokeId);
+      redrawHostCanvas();
+      broadcast({ type: 'undo', strokeId: data.strokeId });
+      break;
+    case 'guess':
+      handleGuess(conn.peer, data.guess);
+      break;
+  }
+}
+
+function onPlayerJoin(conn, data) {
+  const idx = Object.keys(hostConns).length;
+  hostConns[conn.peer] = {
+    conn, name: data.name,
+    score: 0,
+    avatarIdx: idx % 8,
+    guessed: false
+  };
+
+  // Send them current state
+  send(conn, {
+    type: 'joined',
+    peerId: conn.peer,
+    avatarIdx: idx % 8,
+    players: buildPlayerList()
+  });
+
+  broadcastPlayerList();
+  updateSetupPlayerList();
+  updateHostPlayerList();
+
+  if (Object.keys(hostConns).length >= 2) {
+    $('start-btn').disabled = false;
+    $('start-hint').textContent = Object.keys(hostConns).length + ' players ready';
+  }
+
+  notify('👋 ' + data.name + ' joined!');
+}
+
+function onPlayerDisconnect(peerId) {
+  if (hostConns[peerId]) {
+    const name = hostConns[peerId].name;
+    delete hostConns[peerId];
+    broadcastPlayerList();
+    updateSetupPlayerList();
+    updateHostPlayerList();
+    notify(name + ' left', 'var(--coral)');
+  }
+}
+
+function buildPlayerList() {
+  return Object.entries(hostConns).map(([pid, p]) => ({
+    peerId: pid, name: p.name, score: p.score, avatarIdx: p.avatarIdx, guessed: p.guessed
+  }));
+}
+
+function broadcastPlayerList() {
+  broadcast({ type: 'player-list', players: buildPlayerList() });
+}
+
+function updateSetupPlayerList() {
+  const list = $('waiting-players-list');
+  const players = Object.values(hostConns);
+  if (players.length === 0) {
+    list.innerHTML = '<div class="waiting-empty">No players yet…</div>';
+    return;
+  }
+  list.innerHTML = players.map((p, i) => `
+    <div class="player-chip">
+      <div class="avatar av-${p.avatarIdx}">${AVATAR_EMOJIS[p.avatarIdx]}</div>
+      <span class="pname">${escHtml(p.name)}</span>
+    </div>
+  `).join('');
+}
+
+function updateHostPlayerList() {
+  const drawerPeerId = hostPlayerOrder[hostDrawerIdx];
+  const list = Object.entries(hostConns).map(([pid, p]) => {
+    const isDrawer = pid === drawerPeerId;
+    const cls = isDrawer ? 'drawing' : (p.guessed ? 'guessed' : '');
+    return `<div class="player-chip ${cls}">
+      <div class="avatar av-${p.avatarIdx}" style="width:32px;height:32px;font-size:0.9rem;">${AVATAR_EMOJIS[p.avatarIdx]}</div>
+      <span class="pname" style="font-size:0.85rem;">${escHtml(p.name)}${isDrawer ? ' ✏️' : ''}</span>
+      <span class="pscore">${p.score}</span>
+    </div>`;
+  }).join('');
+  $('host-player-list').innerHTML = list || '<div style="color:var(--muted);font-size:0.8rem;">No players</div>';
+}
+
+// ---- Game Start ----
+function startGame() {
+  const wordsText = $('custom-words').value.trim();
+  const words = wordsText
+    ? wordsText.split('\n').map(w => w.trim()).filter(Boolean)
+    : [...DEFAULT_WORDS];
+
+  hostGameWords = shuffleArray(words);
+  hostPlayerOrder = shuffleArray(Object.keys(hostConns));
+  hostWordIdx = 0;
+  hostDrawerIdx = 0;
+  hostGameActive = true;
+
+  // Reset scores
+  Object.values(hostConns).forEach(p => { p.score = 0; p.guessed = false; });
+
+  showScreen('host-game');
+  resizeCanvas($('host-canvas'));
+
+  broadcast({ type: 'game-started' });
+  setTimeout(startRound, 500);
+}
+
+function startRound() {
+  if (hostWordIdx >= hostGameWords.length) { endGame(); return; }
+  if (Object.keys(hostConns).length === 0) { endGame(); return; }
+
+  // Cycle drawer
+  hostDrawerIdx = hostWordIdx % hostPlayerOrder.length;
+  // Make sure drawer still connected
+  while (hostPlayerOrder[hostDrawerIdx] && !hostConns[hostPlayerOrder[hostDrawerIdx]]) {
+    hostPlayerOrder.splice(hostDrawerIdx, 1);
+    if (hostPlayerOrder.length === 0) { endGame(); return; }
+    hostDrawerIdx = hostWordIdx % hostPlayerOrder.length;
+  }
+
+  const drawerPeerId = hostPlayerOrder[hostDrawerIdx];
+  const drawer = hostConns[drawerPeerId];
+  const word = hostGameWords[hostWordIdx];
+
+  // Reset guessed state
+  Object.values(hostConns).forEach(p => { p.guessed = false; });
+
+  clearCanvas($('host-canvas'));
+  hostStrokeHistory = [];
+
+  $('host-word-text').textContent = word;
+  $('host-drawer-label').textContent = `${drawer.name} is drawing…`;
+
+  // Tell drawer their word
+  send(drawer.conn, { type: 'your-turn', word, round: hostWordIdx + 1, total: hostGameWords.length });
+
+  // Tell others to guess
+  broadcastExcept(drawerPeerId, {
+    type: 'round-start',
+    drawerName: drawer.name,
+    drawerPeerId,
+    wordLength: word.length,
+    round: hostWordIdx + 1,
+    total: hostGameWords.length
+  });
+
+  $('host-guess-feed').innerHTML = '';
+  updateHostPlayerList();
+
+  // Timer
+  hostTimeLeft = ROUND_TIME;
+  $('host-timer').textContent = hostTimeLeft;
+  $('host-timer').className = 'timer-ring';
+  clearInterval(hostTimer);
+
+  hostTimer = setInterval(() => {
+    hostTimeLeft--;
+    updateTimerDisplay($('host-timer'), hostTimeLeft);
+    broadcast({ type: 'timer', time: hostTimeLeft });
+
+    if (hostTimeLeft <= 0) {
+      clearInterval(hostTimer);
+      doEndRound(false);
+    }
+  }, 1000);
+}
+
+function handleGuess(guesserPeerId, guessText) {
+  const guesser = hostConns[guesserPeerId];
+  if (!guesser || !hostGameActive) return;
+
+  const drawerPeerId = hostPlayerOrder[hostDrawerIdx];
+  if (guesserPeerId === drawerPeerId) return; // drawer can't guess
+  if (guesser.guessed) return; // already got it
+
+  const word = hostGameWords[hostWordIdx];
+  const correct = guessText.trim().toLowerCase() === word.toLowerCase();
+
+  // Show in host guess feed
+  addGuessToFeed($('host-guess-feed'), guesser.name, guessText, correct, guesser.avatarIdx);
+
+  // Broadcast guess to all players
+  broadcast({ type: 'guess-made', name: guesser.name, guess: guessText, correct, avatarIdx: guesser.avatarIdx });
+
+  if (correct) {
+    guesser.guessed = true;
+    const bonus = Math.floor(hostTimeLeft / 6);
+    const pts = 10 + bonus;
+    guesser.score += pts;
+    hostConns[drawerPeerId].score += 3;
+
+    // Tell the guesser they got it
+    send(guesser.conn, { type: 'correct', pts, word });
+    broadcastPlayerList();
+    updateHostPlayerList();
+
+    // All guessed?
+    const nonDrawers = Object.keys(hostConns).filter(pid => pid !== drawerPeerId);
+    const allGuessed = nonDrawers.length > 0 && nonDrawers.every(pid => hostConns[pid]?.guessed);
+    if (allGuessed) {
+      clearInterval(hostTimer);
+      setTimeout(() => doEndRound(true), 1500);
+    }
+  }
+}
+
+function doEndRound(allGuessed) {
+  clearInterval(hostTimer);
+  hostGameActive = false;
+
+  const word = hostGameWords[hostWordIdx];
+  const scores = buildPlayerList().sort((a,b) => b.score - a.score);
+
+  broadcast({ type: 'round-end', word, scores });
+  showRoundEndOverlay(word, scores);
+
+  hostWordIdx++;
+
+  setTimeout(() => {
+    hideRoundEnd();
+    hostGameActive = true;
+    startRound();
+  }, 5000);
+}
+
+function endGame() {
+  clearInterval(hostTimer);
+  hostGameActive = false;
+
+  const scores = buildPlayerList().sort((a,b) => b.score - a.score);
+  broadcast({ type: 'game-end', scores });
+  showGameEndOverlay(scores);
+}
+
+function showRoundEndOverlay(word, scores) {
+  $('re-word-text').textContent = word;
+  $('re-scores').innerHTML = scores.map((p, i) => `
+    <div class="score-row">
+      <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span>
+      <span class="score-name">${escHtml(p.name)}</span>
+      <span class="score-pts">${p.score} pts</span>
+    </div>
+  `).join('');
+  $('re-next').textContent = hostWordIdx + 1 <= hostGameWords.length ? 'Next round starting…' : 'Game over!';
+  $('round-end-overlay').classList.add('show');
+}
+
+function hideRoundEnd() {
+  $('round-end-overlay').classList.remove('show');
+}
+
+function showGameEndOverlay(scores) {
+  $('re-word-text').textContent = '🎉 Game Over!';
+  $('re-word').innerHTML = '🏆 Final Scores';
+  $('re-scores').innerHTML = scores.map((p, i) => `
+    <div class="score-row">
+      <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span>
+      <span class="score-name">${escHtml(p.name)}</span>
+      <span class="score-pts">${p.score} pts</span>
+    </div>
+  `).join('');
+  $('re-next').innerHTML = '<button class="btn btn-lime" onclick="location.reload()">🔄 Play Again</button>';
+  $('round-end-overlay').classList.add('show');
+}
+
+// =============================================
+//  PLAYER FLOW
+// =============================================
+
+function joinGame() {
+  const code = $('join-code').value.trim().toUpperCase();
+  const name = $('player-name').value.trim();
+
+  if (!code || code.length < 4) { showJoinError('Enter a valid room code'); return; }
+  if (!name) { showJoinError('Enter your name'); return; }
+
+  myName = name;
+  roomCode = code;
+  $('join-error').style.display = 'none';
+
+  peer = new Peer({ debug: 0 });
+
+  peer.on('open', (id) => {
+    myPeerId = id;
+    hostConn = peer.connect('sketchparty-' + code, { reliable: true });
+
+    hostConn.on('open', () => {
+      send(hostConn, { type: 'join', name });
+    });
+
+    hostConn.on('data', handlePlayerMsg);
+    hostConn.on('close', () => notify('Disconnected from host', 'var(--coral)'));
+    hostConn.on('error', () => showJoinError('Connection failed'));
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'peer-unavailable') showJoinError('Room not found. Check the code!');
+    else showJoinError('Connection error: ' + err.type);
+  });
+}
+
+function showJoinError(msg) {
+  const el = $('join-error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function handlePlayerMsg(data) {
+  switch (data.type) {
+    case 'joined':
+      myPeerId = data.peerId;
+      myAvatarIdx = data.avatarIdx;
+      $('pw-name').textContent = '👋 Hey, ' + myName + '!';
+      updateWaitingPlayerList(data.players);
+      showScreen('player-waiting');
+      break;
+
+    case 'player-list':
+      updateWaitingPlayerList(data.players);
+      break;
+
+    case 'game-started':
+      // Ready to receive rounds
+      break;
+
+    case 'your-turn':
+      myTurn = true;
+      hasGuessedCorrectly = false;
+      $('player-word-text').textContent = data.word;
+      showScreen('player-drawing');
+      initPlayerCanvas();
+      setDrawMode('touch');
+      startPlayerTimer();
+      break;
+
+    case 'round-start':
+      myTurn = false;
+      hasGuessedCorrectly = false;
+      $('guess-drawer-name').textContent = data.drawerName + ' is drawing…';
+      $('guess-word-dashes').textContent = '_ '.repeat(data.wordLength).trim();
+      $('correct-feedback').style.display = 'none';
+      $('guess-input-form').style.display = 'flex';
+      $('guess-input').value = '';
+      $('player-guess-feed').innerHTML = '';
+      showScreen('player-guessing');
+      startPlayerTimer();
+      break;
+
+    case 'timer':
+      playerTimeLeft = data.time;
+      const timerEl = myTurn ? $('player-timer') : $('guess-timer');
+      if (timerEl) updateTimerDisplay(timerEl, data.time);
+      break;
+
+    case 'correct':
+      hasGuessedCorrectly = true;
+      $('correct-pts').textContent = data.pts;
+      $('correct-feedback').style.display = 'block';
+      $('guess-input-form').style.display = 'none';
+      $('guess-word-dashes').textContent = data.word;
+      break;
+
+    case 'guess-made':
+      addGuessToFeed($('player-guess-feed'), data.name, data.guess, data.correct, data.avatarIdx);
+      break;
+
+    case 'stroke':
+      // For watching (not needed on player side for basic version)
+      break;
+
+    case 'round-end':
+      showPlayerRoundEnd(data.word, data.scores);
+      break;
+
+    case 'game-end':
+      showPlayerGameEnd(data.scores);
+      break;
+  }
+}
+
+function updateWaitingPlayerList(players) {
+  if (!players) return;
+  $('waiting-player-list').innerHTML = players.map(p => `
+    <div class="player-chip">
+      <div class="avatar av-${p.avatarIdx}">${AVATAR_EMOJIS[p.avatarIdx]}</div>
+      <span class="pname">${escHtml(p.name)}</span>
+      <span class="pscore">${p.score} pts</span>
+    </div>
+  `).join('');
+}
+
+function showPlayerRoundEnd(word, scores) {
+  notify('The word was: ' + word, 'var(--blue)');
+  updateWaitingPlayerList(scores);
+
+  if (myTurn) {
+    // Show them a brief "round over" state
+    showScreen('player-waiting');
+    $('pw-name').textContent = '⏰ Round over!';
+  }
+}
+
+function showPlayerGameEnd(scores) {
+  showScreen('player-waiting');
+  $('pw-name').textContent = '🏆 Game Over!';
+  updateWaitingPlayerList(scores);
+}
+
+function startPlayerTimer() {
+  clearInterval(playerTimer);
+}
+
+function submitGuess() {
+  const guess = $('guess-input').value.trim();
+  if (!guess || hasGuessedCorrectly) return;
+  send(hostConn, { type: 'guess', guess });
+  $('guess-input').value = '';
+}
+
+// =============================================
+//  DRAWING ENGINE
+// =============================================
+
+let strokeId = 0;
+let currentStrokeId = null;
+let isStroking = false;
+
+function initPlayerCanvas() {
+  const canvas = $('player-canvas');
+  resizeCanvas(canvas);
+  clearCanvas(canvas);
+
+  // Touch events
+  canvas.ontouchstart = (e) => {
+    if (drawMode !== 'touch') return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const pos = getCanvasPos(canvas, t.clientX, t.clientY);
+    startStroke(canvas, pos.x, pos.y);
+  };
+  canvas.ontouchmove = (e) => {
+    if (drawMode !== 'touch') return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const pos = getCanvasPos(canvas, t.clientX, t.clientY);
+    continueStroke(canvas, pos.x, pos.y);
+  };
+  canvas.ontouchend = canvas.ontouchcancel = (e) => {
+    if (drawMode !== 'touch') return;
+    e.preventDefault();
+    endStroke();
+  };
+
+  // Mouse events (desktop fallback)
+  canvas.onmousedown = (e) => {
+    if (drawMode !== 'touch') return;
+    const pos = getCanvasPos(canvas, e.clientX, e.clientY);
+    startStroke(canvas, pos.x, pos.y);
+  };
+  canvas.onmousemove = (e) => {
+    if (drawMode !== 'touch' || !isStroking) return;
+    const pos = getCanvasPos(canvas, e.clientX, e.clientY);
+    continueStroke(canvas, pos.x, pos.y);
+  };
+  canvas.onmouseup = canvas.onmouseleave = () => { if (drawMode === 'touch') endStroke(); };
+}
+
+function getCanvasPos(canvas, clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) / rect.width,
+    y: (clientY - rect.top) / rect.height
+  };
+}
+
+function startStroke(canvas, nx, ny) {
+  isStroking = true;
+  currentStrokeId = ++strokeId;
+  lastX = nx; lastY = ny;
+
+  const stroke = {
+    type: 'dot',
+    strokeId: currentStrokeId,
+    x: nx, y: ny,
+    color: isEraser ? '#ffffff' : selectedColor,
+    size: isEraser ? brushSize * 3 : brushSize
+  };
+  drawOnCanvas(canvas, stroke);
+  send(hostConn, { type: 'stroke', stroke });
+}
+
+function continueStroke(canvas, nx, ny) {
+  if (!isStroking) return;
+  const stroke = {
+    type: 'line',
+    strokeId: currentStrokeId,
+    fromX: lastX, fromY: lastY,
+    toX: nx, toY: ny,
+    color: isEraser ? '#ffffff' : selectedColor,
+    size: isEraser ? brushSize * 3 : brushSize
+  };
+  drawOnCanvas(canvas, stroke);
+  send(hostConn, { type: 'stroke', stroke });
+  lastX = nx; lastY = ny;
+}
+
+function endStroke() {
+  isStroking = false;
+  currentStrokeId = null;
+}
+
+function drawOnCanvas(canvas, stroke) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = stroke.color;
+  ctx.fillStyle = stroke.color;
+  ctx.lineWidth = stroke.size;
+
+  if (stroke.type === 'dot') {
+    ctx.beginPath();
+    ctx.arc(stroke.x * w, stroke.y * h, stroke.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (stroke.type === 'line') {
+    ctx.beginPath();
+    ctx.moveTo(stroke.fromX * w, stroke.fromY * h);
+    ctx.lineTo(stroke.toX * w, stroke.toY * h);
+    ctx.stroke();
+  }
+}
+
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function resizeCanvas(canvas) {
+  const container = canvas.parentElement;
+  const rect = container.getBoundingClientRect();
+  const w = Math.floor(rect.width);
+  const h = Math.floor(rect.height) || Math.floor(rect.width * 0.6);
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+    clearCanvas(canvas);
+  }
+}
+
+function redrawHostCanvas() {
+  const canvas = $('host-canvas');
+  clearCanvas(canvas);
+  hostStrokeHistory.forEach(s => drawOnCanvas(canvas, s));
+}
+
+function sendClearCanvas() {
+  const canvas = $('player-canvas');
+  clearCanvas(canvas);
+  hostStrokeHistory = [];
+  send(hostConn, { type: 'clear' });
+}
+
+function sendUndo() {
+  if (!currentStrokeId && strokeId > 0) {
+    const removeId = strokeId;
+    send(hostConn, { type: 'undo', strokeId: removeId });
+    strokeId = Math.max(0, strokeId - 1);
+    // Locally: we can't easily undo without a local history, so just clear+redraw
+    // For simplicity send undo and let host handle
+  }
+}
+
+// =============================================
+//  TILT / MOTION DRAWING
+// =============================================
+
+let tiltRAF = null;
+let deviceOrientationGranted = false;
+let tiltPenDown = false;
+
+function setDrawMode(mode) {
+  drawMode = mode;
+  $('mode-touch-btn').classList.toggle('active', mode === 'touch');
+  $('mode-tilt-btn').classList.toggle('active', mode === 'tilt');
+  $('tilt-draw-area').style.display = mode === 'tilt' ? 'block' : 'none';
+  $('tilt-cursor').style.display = mode === 'tilt' ? 'block' : 'none';
+  $('player-canvas').style.pointerEvents = mode === 'touch' ? 'auto' : 'none';
+
+  if (mode === 'tilt') {
+    requestTiltPermission();
+  } else {
+    tiltPenDown = false;
+    if (tiltRAF) cancelAnimationFrame(tiltRAF);
+  }
+}
+
+function requestTiltPermission() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') enableTiltMode();
+        else { notify('Motion permission denied', 'var(--coral)'); setDrawMode('touch'); }
+      })
+      .catch(() => { notify('Could not get motion access', 'var(--coral)'); setDrawMode('touch'); });
+  } else {
+    enableTiltMode();
+  }
+}
+
+function enableTiltMode() {
+  deviceOrientationGranted = true;
+  tiltX = 0.5; tiltY = 0.5;
+  lastTiltX = 0.5; lastTiltY = 0.5;
+  notify('📱 Tilt mode active! Hold button to draw', 'var(--blue)');
+
+  window.addEventListener('deviceorientation', onDeviceOrientation);
+}
+
+function onDeviceOrientation(e) {
+  if (drawMode !== 'tilt') return;
+  const gamma = e.gamma || 0; // -90 to 90, left-right
+  const beta = e.beta || 45;  // -180 to 180, front-back
+
+  lastTiltX = tiltX;
+  lastTiltY = tiltY;
+
+  tiltX = Math.max(0, Math.min(1, (gamma + 45) / 90));
+  tiltY = Math.max(0, Math.min(1, (beta - 5) / 80));
+
+  // Update cursor
+  const container = $('draw-canvas-container');
+  const cRect = container.getBoundingClientRect();
+  const cursor = $('tilt-cursor');
+  cursor.style.left = (tiltX * cRect.width) + 'px';
+  cursor.style.top = (tiltY * cRect.height) + 'px';
+  cursor.className = tiltPenDown ? 'drawing' : '';
+
+  if (tiltPenDown) {
+    const canvas = $('player-canvas');
+    if (lastTiltX === tiltX && lastTiltY === tiltY) return;
+    const stroke = {
+      type: 'line',
+      strokeId: currentStrokeId || (currentStrokeId = ++strokeId),
+      fromX: lastTiltX, fromY: lastTiltY,
+      toX: tiltX, toY: tiltY,
+      color: isEraser ? '#ffffff' : selectedColor,
+      size: isEraser ? brushSize * 3 : brushSize
+    };
+    drawOnCanvas(canvas, stroke);
+    send(hostConn, { type: 'stroke', stroke });
+  }
+}
+
+function startDrawing() {
+  tiltPenDown = true;
+  currentStrokeId = ++strokeId;
+  const canvas = $('player-canvas');
+  const dot = {
+    type: 'dot',
+    strokeId: currentStrokeId,
+    x: tiltX, y: tiltY,
+    color: isEraser ? '#ffffff' : selectedColor,
+    size: isEraser ? brushSize * 3 : brushSize
+  };
+  drawOnCanvas(canvas, dot);
+  send(hostConn, { type: 'stroke', stroke: dot });
+  $('draw-hold-btn').classList.add('active');
+}
+
+function stopDrawing() {
+  tiltPenDown = false;
+  currentStrokeId = null;
+  $('draw-hold-btn').classList.remove('active');
+}
+
+// =============================================
+//  TOOLBAR
+// =============================================
+
+function buildToolbar() {
+  // Colors
+  const palette = $('color-palette');
+  palette.innerHTML = COLORS.map(c => `
+    <div class="color-swatch ${c === selectedColor ? 'selected' : ''}"
+         style="background:${c};${c==='#ffffff'?'border:2px solid #ccc;':''}"
+         onclick="selectColor('${c}',this)" title="${c}"></div>
+  `).join('');
+
+  // Brushes
+  const brushContainer = $('brush-sizes');
+  brushContainer.innerHTML = BRUSH_SIZES.map(s => `
+    <div class="brush-size-btn ${s === brushSize ? 'selected' : ''}" onclick="selectBrush(${s},this)" title="${s}px">
+      <span class="brush-dot" style="width:${Math.min(s, 24)}px;height:${Math.min(s, 24)}px;"></span>
+    </div>
+  `).join('');
+}
+
+function selectColor(color, el) {
+  selectedColor = color;
+  isEraser = false;
+  $('eraser-btn').style.borderColor = '';
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectBrush(size, el) {
+  brushSize = size;
+  document.querySelectorAll('.brush-size-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleEraser() {
+  isEraser = !isEraser;
+  $('eraser-btn').style.borderColor = isEraser ? 'var(--lime)' : '';
+}
+
+// =============================================
+//  SHARED UI HELPERS
+// =============================================
+
+function addGuessToFeed(feedEl, name, guess, correct, avatarIdx) {
+  const item = document.createElement('div');
+  item.className = 'guess-item' + (correct ? ' correct' : '');
+  item.innerHTML = `<span class="gname" style="color:${avatarColor(avatarIdx||0)}">${escHtml(name)}:</span>
+                    <span class="gtext">${escHtml(guess)}${correct ? ' ✅' : ''}</span>`;
+  feedEl.appendChild(item);
+  feedEl.scrollTop = feedEl.scrollHeight;
+
+  // Keep feed trim
+  while (feedEl.children.length > 30) feedEl.removeChild(feedEl.firstChild);
+}
+
+function updateTimerDisplay(el, time) {
+  el.textContent = time;
+  el.className = 'timer-ring';
+  if (time <= 10) el.classList.add('danger');
+  else if (time <= 20) el.classList.add('warning');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function goBack() {
+  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+  hostConns = {};
+  showScreen('landing');
+}
+
+// =============================================
+//  CANVAS RESIZE OBSERVER
+// =============================================
+
+function setupResizeObserver() {
+  const hostCanvas = $('host-canvas');
+  const ro = new ResizeObserver(() => {
+    const container = hostCanvas.parentElement;
+    const w = Math.floor(container.clientWidth);
+    const h = Math.floor(container.clientHeight);
+    if (w > 0 && h > 0 && (hostCanvas.width !== w || hostCanvas.height !== h)) {
+      // Save current drawing
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = hostCanvas.width;
+      tempCanvas.height = hostCanvas.height;
+      tempCanvas.getContext('2d').drawImage(hostCanvas, 0, 0);
+      hostCanvas.width = w;
+      hostCanvas.height = h;
+      clearCanvas(hostCanvas);
+      hostCanvas.getContext('2d').drawImage(tempCanvas, 0, 0, w, h);
+    }
+  });
+  ro.observe(hostCanvas.parentElement);
+}
+
+// =============================================
+//  AUTO-JOIN FROM URL PARAMS
+// =============================================
+
+function checkUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const joinCode = params.get('join');
+  if (joinCode) {
+    showScreen('join');
+    $('join-code').value = joinCode.toUpperCase();
+  }
+}
+
+// =============================================
+//  INIT
+// =============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkUrlParams();
+  buildToolbar();
+  setupResizeObserver();
+
+  // Resize host canvas when screen shows
+  const observer = new MutationObserver(() => {
+    if ($('screen-host-game').classList.contains('active')) {
+      setTimeout(() => resizeCanvas($('host-canvas')), 100);
+    }
+    if ($('screen-player-drawing').classList.contains('active')) {
+      setTimeout(() => resizeCanvas($('player-canvas')), 100);
+    }
+  });
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
+
+  window.addEventListener('resize', () => {
+    if ($('screen-player-drawing').classList.contains('active')) {
+      resizeCanvas($('player-canvas'));
+    }
+  });
+});
+</script>
+</body>
+</html>
