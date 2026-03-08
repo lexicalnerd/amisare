@@ -1478,9 +1478,9 @@ function sendUndo() {
 let wiiPenDown = false;
 let wiiLastTime = 0;
 
-const WII_SENSITIVITY = 0.0018; // original working value
-const WII_DEADZONE    = 1.5;    // deg/s — kills tremor without blocking real motion
-const WII_SMOOTH      = 0.35;   // exponential smooth: higher = more responsive
+const WII_SENSITIVITY = 0.0008; // reduced from 0.0018
+const WII_DEADZONE    = 2.5;    // increased from 1.5 to kill more tremor
+const WII_SMOOTH      = 0.25;   // slightly less responsive = smoother lines
 
 function setDrawMode(mode) { /* wiimote only */ }
 
@@ -1531,9 +1531,9 @@ function onWiiMotion(e) {
   if (Math.abs(gx) < WII_DEADZONE) gx = 0;
   if (Math.abs(gy) < WII_DEADZONE) gy = 0;
 
-  // Left/right: gamma positive = tilt right = cursor right (+X)
-  // Up/down:    beta  positive = tilt forward = cursor down, so invert for natural feel
-  const rawX = Math.max(0, Math.min(1, tiltX + gx * dt * WII_SENSITIVITY));
+  // Left/right: negate gamma so tilting right moves cursor right
+  // Up/down: negate beta so tilting up moves cursor up (already working)
+  const rawX = Math.max(0, Math.min(1, tiltX - gx * dt * WII_SENSITIVITY));
   const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENSITIVITY));
 
   lastTiltX = tiltX;
