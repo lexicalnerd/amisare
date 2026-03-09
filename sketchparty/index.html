@@ -619,13 +619,13 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   <div class="host-main">
     <div class="host-topbar">
       <div id="host-word-banner" class="word-banner" style="flex:1;">
-        <div class="label">Drawing</div>
-        <div class="word" id="host-word-text">—</div>
+        <div class="label">Round <span id="host-round-label">—</span></div>
       </div>
       <div class="timer-ring" id="host-timer">60</div>
     </div>
-    <div class="canvas-wrapper">
+    <div class="canvas-wrapper" style="position:relative;">
       <canvas id="host-canvas"></canvas>
+      <div id="host-cursor" style="position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,107,107,0.9);border:2px solid white;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(255,107,107,0.7);display:none;transition:background 0.1s;"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:center;">
       <div id="host-drawer-label" style="color:var(--muted);font-weight:700;font-size:0.9rem;">Waiting…</div>
@@ -690,11 +690,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     ontouchstart="wiiTouchDown(event)" ontouchend="wiiTouchUp(event)" ontouchcancel="wiiTouchUp(event)"
     onmousedown="wiiTouchDown(event)" onmouseup="wiiTouchUp(event)" onmouseleave="wiiTouchUp(event)">
     <canvas id="player-canvas"></canvas>
-    <div class="tilt-overlay">
-      <div id="tilt-cursor"></div>
-    </div>
-  <!-- Debug: live rotationRate values -->
-  <div id="wii-debug" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:lime;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:6px;pointer-events:none;z-index:20;line-height:1.8;"></div>
     <div id="wii-activate" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,14,26,0.85);cursor:pointer;border-radius:14px;"
       onclick="activateWiimote()">
       <div style="font-size:3rem;margin-bottom:12px;">🕹️</div>
@@ -742,7 +737,9 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 <!-- ===== ROUND END OVERLAY ===== -->
 <div id="round-end-overlay">
   <div class="logo" style="font-size:0.9rem;">Round Over!</div>
-  <div style="font-size:1.5rem;font-weight:900;color:var(--muted);" id="re-word">The word was: <span style="color:var(--lime);" id="re-word-text">—</span></div>
+  <div style="font-size:1.5rem;font-weight:900;" id="re-word">The word was: <span style="color:var(--lime);" id="re-word-text">—</span></div>
+  <!-- Canvas snapshot shown after round -->
+  <img id="re-canvas-snapshot" style="max-width:360px;width:100%;border-radius:12px;border:3px solid var(--lime);display:none;" alt="drawing"/>
   <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px;" id="re-scores"></div>
   <div style="color:var(--muted);font-size:0.85rem;font-weight:700;" id="re-next">Next round starting…</div>
 </div>
@@ -764,7 +761,7 @@ const COLORS = ['#000000','#ffffff','#ef4444','#f97316','#eab308','#22c55e',
                  '#6b7280','#92400e','#1e3a8a'];
 const BRUSH_SIZES = [3, 7, 14, 24];
 const AVATAR_EMOJIS = ['🐱','🐶','🦊','🐸','🐺','🦁','🐼','🦄'];
-const ROUND_TIME = 60;
+const ROUND_TIME = 120;
 
 // ---- State ----
 let peer = null;
@@ -903,6 +900,9 @@ function handleHostMsg(conn, data) {
     case 'join':
       onPlayerJoin(conn, data);
       break;
+    case 'cursor':
+      moveHostCursor(data.x, data.y, data.drawing);
+      break;
     case 'stroke':
       if (!hostGameActive) break;
       drawOnCanvas($('host-canvas'), data.stroke);
@@ -969,6 +969,19 @@ function buildPlayerList() {
   return Object.entries(hostConns).map(([pid, p]) => ({
     peerId: pid, name: p.name, score: p.score, avatarIdx: p.avatarIdx, guessed: p.guessed
   }));
+}
+
+function moveHostCursor(nx, ny, drawing) {
+  const cursor = $('host-cursor');
+  const wrapper = cursor.parentElement;
+  if (!cursor || !wrapper) return;
+  const w = wrapper.clientWidth;
+  const h = wrapper.clientHeight;
+  cursor.style.display = 'block';
+  cursor.style.left = (nx * w) + 'px';
+  cursor.style.top  = (ny * h) + 'px';
+  cursor.style.background = drawing ? 'rgba(200,255,0,0.95)' : 'rgba(255,107,107,0.9)';
+  cursor.style.boxShadow  = drawing ? '0 0 12px rgba(200,255,0,0.8)' : '0 0 8px rgba(255,107,107,0.7)';
 }
 
 function broadcastPlayerList() {
@@ -1050,7 +1063,7 @@ function startRound() {
   clearCanvas($('host-canvas'));
   hostStrokeHistory = [];
 
-  $('host-word-text').textContent = word;
+  $('host-round-label').textContent = (hostWordIdx + 1) + ' / ' + hostGameWords.length;
   $('host-drawer-label').textContent = `${drawer.name} is drawing…`;
 
   // Tell drawer their word
@@ -1156,6 +1169,17 @@ function endGame() {
 
 function showRoundEndOverlay(word, scores) {
   $('re-word-text').textContent = word;
+
+  // Capture canvas snapshot
+  const snapshot = $('re-canvas-snapshot');
+  const canvas = $('host-canvas');
+  if (canvas && canvas.width > 0) {
+    snapshot.src = canvas.toDataURL('image/png');
+    snapshot.style.display = 'block';
+  } else {
+    snapshot.style.display = 'none';
+  }
+
   $('re-scores').innerHTML = scores.map((p, i) => `
     <div class="score-row">
       <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span>
@@ -1169,6 +1193,8 @@ function showRoundEndOverlay(word, scores) {
 
 function hideRoundEnd() {
   $('round-end-overlay').classList.remove('show');
+  const cursor = $('host-cursor');
+  if (cursor) cursor.style.display = 'none';
 }
 
 function showGameEndOverlay(scores) {
@@ -1479,11 +1505,11 @@ function sendUndo() {
 let wiiPenDown = false;
 let wiiLastTime = 0;
 
-const WII_SENS_X      = 0.0004;
-const WII_SENS_Y      = 0.0003;
-const WII_DEAD_X      = 4.0;
-const WII_DEAD_Y      = 3.0;
-const WII_SMOOTH      = 0.2;
+const WII_SENS_X      = 0.00025;
+const WII_SENS_Y      = 0.00018;
+const WII_DEAD_X      = 5.0;
+const WII_DEAD_Y      = 4.0;
+const WII_SMOOTH      = 0.12;
 
 function setDrawMode(mode) { /* wiimote only */ }
 
@@ -1508,12 +1534,6 @@ function enableWiiMode() {
   drawMode = 'tilt';
   $('player-canvas').style.pointerEvents = 'none';
 
-  const container = $('draw-canvas-container');
-  const cRect = container.getBoundingClientRect();
-  const cursor = $('tilt-cursor');
-  cursor.style.left = (0.5 * cRect.width)  + 'px';
-  cursor.style.top  = (0.5 * cRect.height) + 'px';
-
   window.removeEventListener('devicemotion', onWiiMotion);
   window.addEventListener('devicemotion', onWiiMotion);
 }
@@ -1521,13 +1541,6 @@ function enableWiiMode() {
 function onWiiMotion(e) {
   const rr = e.rotationRate;
   if (!rr) return;
-
-  // Debug: show raw values for all axes
-  const dbg = $('wii-debug');
-  if (dbg) dbg.innerHTML =
-    `α: ${(rr.alpha||0).toFixed(1)}<br>` +
-    `β: ${(rr.beta ||0).toFixed(1)}<br>` +
-    `γ: ${(rr.gamma||0).toFixed(1)}`;
 
   const now = performance.now();
   const dt = Math.min(now - wiiLastTime, 50);
@@ -1548,12 +1561,8 @@ function onWiiMotion(e) {
   tiltX += (rawX - tiltX) * WII_SMOOTH;
   tiltY += (rawY - tiltY) * WII_SMOOTH;
 
-  const container = $('draw-canvas-container');
-  const cRect = container.getBoundingClientRect();
-  const cursor = $('tilt-cursor');
-  cursor.style.left = (tiltX * cRect.width)  + 'px';
-  cursor.style.top  = (tiltY * cRect.height) + 'px';
-  cursor.className  = wiiPenDown ? 'drawing' : '';
+  // Send cursor position to host to display on the big screen
+  send(hostConn, { type: 'cursor', x: tiltX, y: tiltY, drawing: wiiPenDown });
 
   if (wiiPenDown) {
     const moved = Math.abs(tiltX - lastTiltX) > 0.001 || Math.abs(tiltY - lastTiltY) > 0.001;
