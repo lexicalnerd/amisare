@@ -37,16 +37,11 @@ body {
 .screen { display: none; width: 100%; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
 
-/* ===== TYPOGRAPHY ===== */
-.pixel { font-family: 'Press Start 2P', monospace; }
-h1 { font-family: 'Press Start 2P', monospace; }
-
 /* ===== LOGO ===== */
 .logo {
-  font-family: 'Press Start 2P', monospace;
+  font-weight: bold;
   font-size: clamp(1.2rem, 4vw, 2.5rem);
   color: var(--lime);
-  text-shadow: 0 0 30px rgba(200,255,0,0.5), 4px 4px 0 rgba(200,255,0,0.2);
   letter-spacing: -1px;
   line-height: 1.4;
 }
@@ -144,7 +139,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 
 /* ===== ROOM CODE ===== */
 .room-code-display {
-  font-family: 'Press Start 2P', monospace;
   font-size: clamp(1.5rem, 5vw, 3rem);
   color: var(--lime);
   letter-spacing: 8px;
@@ -160,7 +154,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   width: 80px; height: 80px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Press Start 2P', monospace;
   font-size: 1.4rem;
   border: 4px solid var(--lime);
   color: var(--lime);
@@ -179,7 +172,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   text-align: center;
 }
 .word-banner .label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
-.word-banner .word { font-family: 'Press Start 2P', monospace; font-size: clamp(0.9rem, 2vw, 1.4rem); color: var(--lime); }
+.word-banner .word { font-size: clamp(0.9rem, 2vw, 1.4rem); color: var(--lime); }
 .word-banner.hidden-word .word { color: var(--muted); letter-spacing: 8px; }
 
 /* ===== GUESS FEED ===== */
@@ -277,12 +270,12 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   background: var(--surface2);
   width: 100%;
 }
-.score-rank { font-family: 'Press Start 2P', monospace; font-size: 1rem; width: 30px; color: var(--muted); }
+.score-rank { font-size: 1rem; width: 30px; color: var(--muted); }
 .score-rank.gold { color: #ffd700; }
 .score-rank.silver { color: #c0c0c0; }
 .score-rank.bronze { color: #cd7f32; }
 .score-name { font-weight: 800; flex: 1; }
-.score-pts { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: var(--lime); }
+.score-pts { font-size: 0.9rem; color: var(--lime); }
 
 /* ===== ANIMATIONS ===== */
 @keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
@@ -550,15 +543,12 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 <!-- ===== LANDING ===== -->
 <div id="screen-landing" class="screen active">
   <div class="landing-hero">
-    <span class="landing-emoji">🎨</span>
     <div class="logo">Sketch<span>Party</span></div>
-    <p class="landing-tagline">Draw with your phone · Guess on the big screen</p>
   </div>
   <div class="landing-buttons">
-    <button class="btn btn-lime btn-lg" onclick="goHostSetup()">🖥️ &nbsp;Host a Game</button>
-    <button class="btn btn-ghost btn-lg" onclick="showScreen('join')">📱 &nbsp;Join Game</button>
+    <button class="btn btn-lime btn-lg" onclick="goHostSetup()">&nbsp;Host a Game</button>
+    <button class="btn btn-ghost btn-lg" onclick="showScreen('join')">&nbsp;Join Game</button>
   </div>
-  <p style="color:var(--muted);font-size:0.75rem;text-align:center;">Host on your TV · Players join on phones</p>
 </div>
 
 <!-- ===== HOST SETUP ===== -->
@@ -574,7 +564,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="card" style="text-align:center;gap:12px;display:flex;flex-direction:column;">
       <div class="section-title" style="margin:0;">Room Code</div>
       <div class="room-code-display" id="room-code-text">----</div>
-      <div class="invite-info">Share this code <strong>or</strong> scan QR with phones</div>
       <div id="qrcode-container"><div id="qrcode"></div></div>
       <div class="join-url" id="join-url-display"></div>
     </div>
@@ -611,7 +600,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div id="host-player-list" style="display:flex;flex-direction:column;gap:6px;flex:1;"></div>
     <div style="margin-top:auto;">
       <div class="section-title">Room</div>
-      <div style="font-family:'Press Start 2P',monospace;font-size:0.9rem;color:var(--lime);letter-spacing:4px;" id="host-room-code-small"></div>
+      <div style="font-size:0.9rem;color:var(--lime);letter-spacing:4px;" id="host-room-code-small"></div>
     </div>
   </div>
 
@@ -644,7 +633,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   <div class="join-card">
     <div class="logo" style="font-size:1rem;text-align:center;">Sketch<span>Party</span></div>
     <div style="text-align:center;color:var(--muted);font-weight:700;">Enter the room code from the host screen</div>
-    <input class="input" id="join-code" placeholder="ROOM CODE" style="text-align:center;font-family:'Press Start 2P',monospace;letter-spacing:4px;font-size:1.1rem;" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+    <input class="input" id="join-code" placeholder="ROOM CODE" style="text-align:center;letter-spacing:4px;font-size:1.1rem;" maxlength="6" oninput="this.value=this.value.toUpperCase()">
     <input class="input" id="player-name" placeholder="Your Name" maxlength="16">
     <button class="btn btn-lime btn-lg" onclick="joinGame()">Join! 🎉</button>
     <button class="btn btn-ghost" onclick="showScreen('landing')">← Back</button>
@@ -873,7 +862,6 @@ function goHostSetup() {
   $('host-room-code-small').textContent = roomCode;
 
   const joinUrl = window.location.href.split('?')[0] + '?join=' + roomCode;
-  $('join-url-display').textContent = joinUrl;
   generateQR(joinUrl);
 
   peer = new Peer(peerId, { debug: 0 });
