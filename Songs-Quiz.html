@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn English with Songs - Expression Quiz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #f7f7ff, #e5f4ff);
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1000px, 100%);
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      padding: 32px;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.05;
+    }
+
+    .badge {
+      background: #111827;
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 18px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .progress-wrap {
+      background: #e5e7eb;
+      height: 16px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: #111827;
+      transition: width 0.25s ease;
+    }
+
+    .question-card {
+      border: 4px solid #111827;
+      border-radius: 24px;
+      padding: 28px;
+      min-height: 430px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fffdf7;
+    }
+
+    .question-number {
+      font-size: 22px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      line-height: 1.18;
+      margin-bottom: 24px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    button.answer {
+      border: 3px solid #111827;
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      font-size: clamp(20px, 3vw, 30px);
+      font-weight: 800;
+      cursor: pointer;
+      min-height: 90px;
+      transition: transform 0.12s ease, background 0.12s ease;
+      text-align: left;
+    }
+
+    button.answer:hover {
+      transform: translateY(-3px);
+      background: #eef2ff;
+    }
+
+    button.answer.correct {
+      background: #bbf7d0;
+    }
+
+    button.answer.wrong {
+      background: #fecaca;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 3px solid #111827;
+      border-radius: 18px;
+      padding: 20px;
+      font-size: 26px;
+      font-family: inherit;
+      background: white;
+    }
+
+    .hint {
+      font-size: 22px;
+      color: #4b5563;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    .feedback {
+      margin-top: 22px;
+      font-size: 28px;
+      font-weight: 900;
+      min-height: 36px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .main-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 18px 28px;
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #111827;
+      color: white;
+    }
+
+    .main-button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .main-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .score {
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .result-screen {
+      text-align: center;
+      padding: 42px 10px;
+    }
+
+    .result-screen h2 {
+      font-size: clamp(42px, 6vw, 72px);
+      margin: 0 0 18px;
+    }
+
+    .result-screen p {
+      font-size: 28px;
+      line-height: 1.45;
+      max-width: 780px;
+      margin: 0 auto 24px;
+    }
+
+    .saved-answers {
+      margin-top: 24px;
+      text-align: left;
+      background: #f9fafb;
+      border: 3px solid #111827;
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .saved-answers h3 {
+      font-size: 28px;
+      margin-top: 0;
+    }
+
+    .saved-answers p {
+      font-size: 22px;
+      margin: 12px 0;
+    }
+
+    .expression {
+      display: inline-block;
+      background: #fde68a;
+      border-radius: 12px;
+      padding: 2px 10px;
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 20px;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .question-card {
+        padding: 20px;
+        min-height: auto;
+      }
+
+      textarea {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="top-bar">
+      <h1>Learn English with Songs</h1>
+      <div class="badge">Expression Quiz</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <section id="quiz"></section>
+
+    <div class="controls">
+      <button class="main-button secondary" id="prevBtn">← Back</button>
+      <div class="score" id="scoreText">Score: 0</div>
+      <button class="main-button" id="nextBtn">Next →</button>
+    </div>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        type: "mcq",
+        title: "Multiple Choice",
+        text: "Ali failed the test, but he said, “I’ll study harder next time. I won’t give up.” What does “give up” mean?",
+        options: [
+          "Stop trying",
+          "Start laughing",
+          "Study more",
+          "Feel excited"
+        ],
+        answer: 0,
+        explanation: "Correct: “give up” means to stop trying or quit."
+      },
+      {
+        type: "mcq",
+        title: "Multiple Choice",
+        text: "Two friends had a big argument last year. Now they don’t talk to each other. There is ____ between them.",
+        options: [
+          "let it be",
+          "bad blood",
+          "crybaby",
+          "give up"
+        ],
+        answer: 1,
+        explanation: "Correct: “bad blood” means anger or problems between people because of the past."
+      },
+      {
+        type: "mcq",
+        title: "Multiple Choice",
+        text: "Someone says something rude to you, but you ignore it and continue your day. Which expression fits best?",
+        options: [
+          "Shake it off",
+          "Give up",
+          "Bad blood",
+          "Crybaby"
+        ],
+        answer: 0,
+        explanation: "Correct: “shake it off” means to ignore something bad and move on."
+      },
+      {
+        type: "open",
+        title: "Open-Ended",
+        text: "Think of a time when someone said something negative to you. How could you “shake it off”?",
+        placeholder: "Write your answer here...",
+        sample: "Example: I could ignore the comment, stay calm, and not let it ruin my day."
+      },
+      {
+        type: "open",
+        title: "Open-Ended",
+        text: "Which expression do you like the most: “let it be,” “give up,” or “shake it off”? Why?",
+        placeholder: "Write your answer here...",
+        sample: "Example: I like “shake it off” because it reminds me not to care too much about rude comments."
+      },
+      {
+        type: "mcq",
+        title: "Vocabulary in Context",
+        text: "Mert dropped his ice cream and cried for ten minutes. His brother said, “Don’t be such a crybaby.” What does “crybaby” mean here?",
+        options: [
+          "A small child",
+          "Someone who cries or complains easily",
+          "Someone who is very brave",
+          "Someone who likes ice cream"
+        ],
+        answer: 1,
+        explanation: "Correct: “crybaby” means someone who cries or complains easily. It can sound rude."
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    const selectedAnswers = Array(questions.length).fill(null);
+    const openAnswers = Array(questions.length).fill("");
+
+    const quiz = document.getElementById("quiz");
+    const progress = document.getElementById("progress");
+    const scoreText = document.getElementById("scoreText");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function updateScore() {
+      score = questions.reduce((total, q, index) => {
+        if (q.type === "mcq" && selectedAnswers[index] === q.answer) {
+          return total + 1;
+        }
+        return total;
+      }, 0);
+
+      const totalAuto = questions.filter(q => q.type === "mcq").length;
+      scoreText.textContent = `Score: ${score}/${totalAuto}`;
+    }
+
+    function renderQuestion() {
+      const q = questions[current];
+      progress.style.width = `${((current + 1) / questions.length) * 100}%`;
+      prevBtn.disabled = current === 0;
+      nextBtn.textContent = current === questions.length - 1 ? "Finish ✓" : "Next →";
+
+      let html = `
+        <div class="question-card">
+          <div>
+            <div class="question-number">${q.title} · Question ${current + 1} of ${questions.length}</div>
+            <div class="question-text">${highlightExpressions(q.text)}</div>
+      `;
+
+      if (q.type === "mcq") {
+        html += `<div class="answers">`;
+        q.options.forEach((option, index) => {
+          let className = "";
+          if (selectedAnswers[current] !== null) {
+            if (index === q.answer) className = "correct";
+            else if (index === selectedAnswers[current]) className = "wrong";
+          }
+
+          html += `
+            <button class="answer ${className}" onclick="selectAnswer(${index})">
+              ${String.fromCharCode(65 + index)}) ${option}
+            </button>
+          `;
+        });
+        html += `</div>`;
+      } else {
+        html += `
+          <textarea 
+            id="openInput" 
+            placeholder="${q.placeholder}" 
+            oninput="saveOpenAnswer(this.value)"
+          >${openAnswers[current] || ""}</textarea>
+          <div class="hint">${q.sample}</div>
+        `;
+      }
+
+      html += `
+          <div class="feedback" id="feedback">${getFeedbackText()}</div>
+        </div>
+      </div>`;
+
+      quiz.innerHTML = html;
+      updateScore();
+    }
+
+    function highlightExpressions(text) {
+      const expressions = ["give up", "bad blood", "shake it off", "let it be", "crybaby"];
+      let output = text;
+
+      expressions.forEach(exp => {
+        const regex = new RegExp(`(${exp})`, "gi");
+        output = output.replace(regex, `<span class="expression">$1</span>`);
+      });
+
+      return output;
+    }
+
+    function getFeedbackText() {
+      const q = questions[current];
+
+      if (q.type === "open") {
+        return "Write your own answer. The teacher can check it. Humanity survives subjective assessment.";
+      }
+
+      if (selectedAnswers[current] === null) {
+        return "Choose an answer.";
+      }
+
+      if (selectedAnswers[current] === q.answer) {
+        return q.explanation;
+      }
+
+      return "Not quite. Try to read the sentence again.";
+    }
+
+    function selectAnswer(index) {
+      selectedAnswers[current] = index;
+      renderQuestion();
+    }
+
+    function saveOpenAnswer(value) {
+      openAnswers[current] = value;
+    }
+
+    function showResults() {
+      updateScore();
+
+      const openAnswerHtml = questions
+        .map((q, index) => {
+          if (q.type !== "open") return "";
+          const answer = openAnswers[index].trim() || "No answer written.";
+          return `<p><strong>Question ${index + 1}:</strong> ${answer}</p>`;
+        })
+        .join("");
+
+      quiz.innerHTML = `
+        <div class="result-screen">
+          <h2>Quiz Finished!</h2>
+          <p>You scored <strong>${score}/4</strong> on the auto-graded questions.</p>
+          <p>The 2 open-ended answers should be checked by the teacher, because apparently humans still need judgment. Terrible design, but useful.</p>
+
+          <div class="saved-answers">
+            <h3>Open-Ended Answers</h3>
+            ${openAnswerHtml}
+          </div>
+
+          <button class="main-button" onclick="restartQuiz()">Restart Quiz</button>
+        </div>
+      `;
+
+      progress.style.width = "100%";
+      prevBtn.style.display = "none";
+      nextBtn.style.display = "none";
+      scoreText.textContent = `Final Score: ${score}/4`;
+    }
+
+    function restartQuiz() {
+      current = 0;
+      for (let i = 0; i < selectedAnswers.length; i++) {
+        selectedAnswers[i] = null;
+        openAnswers[i] = "";
+      }
+
+      prevBtn.style.display = "inline-block";
+      nextBtn.style.display = "inline-block";
+      renderQuestion();
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current > 0) {
+        current--;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (current === questions.length - 1) {
+        showResults();
+      } else {
+        current++;
+        renderQuestion();
+      }
+    });
+
+    renderQuestion();
+  </script>
+</body>
+</html>

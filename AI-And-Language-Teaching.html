@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Family Detective</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --panel: #fffaf2;
+      --panel2: #ffffff;
+      --ink: #252525;
+      --muted: #68605a;
+      --line: #ded4c8;
+      --accent: #5b7cfa;
+      --accent-soft: #e9edff;
+      --good: #2b8a3e;
+      --bad: #c92a2a;
+      --warn: #f08c00;
+      --shadow: 0 10px 25px rgba(40, 32, 24, .10);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(91,124,250,.12), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(240,140,0,.10), transparent 35%),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .titlebox h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.8px;
+    }
+
+    .titlebox p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.04);
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 13px;
+      font-weight: 850;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(91,124,250,.22);
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn.secondary {
+      background: var(--panel2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.good {
+      background: var(--good);
+    }
+
+    .btn.bad {
+      background: var(--bad);
+    }
+
+    .btn.warn {
+      background: var(--warn);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .card {
+      background: rgba(255, 250, 242, .93);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 23px;
+      letter-spacing: -0.3px;
+    }
+
+    .card p {
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .family-tree {
+      display: grid;
+      gap: 12px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .person {
+      width: 128px;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 11px 8px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: .12s ease;
+    }
+
+    .person:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 6px 16px rgba(91,124,250,.12);
+    }
+
+    .person.selected {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .face {
+      font-size: 32px;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .name {
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .role {
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .taskbox {
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .taskbox h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .question {
+      font-size: 19px;
+      font-weight: 850;
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .answer {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 13px;
+      padding: 11px 10px;
+      text-align: left;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .12s ease;
+    }
+
+    .answer:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .answer.correct {
+      border-color: rgba(43,138,62,.55);
+      background: rgba(43,138,62,.10);
+    }
+
+    .answer.wrong {
+      border-color: rgba(201,42,42,.55);
+      background: rgba(201,42,42,.08);
+    }
+
+    .feedback {
+      min-height: 28px;
+      margin-top: 10px;
+      font-weight: 850;
+      color: var(--muted);
+    }
+
+    .feedback.good {
+      color: var(--good);
+    }
+
+    .feedback.bad {
+      color: var(--bad);
+    }
+
+    .word-bank {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 850;
+      font-size: 15px;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .chip.used {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .sentence-box {
+      min-height: 58px;
+      background: #fff;
+      border: 1px dashed #bdb1a5;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
+    .mini-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .reading {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      line-height: 1.55;
+      font-size: 17px;
+      font-weight: 650;
+    }
+
+    .reading strong {
+      color: var(--accent);
+    }
+
+    .truefalse {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .tf-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .tf-row span {
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .write-area {
+      width: 100%;
+      min-height: 145px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 17px;
+      line-height: 1.4;
+      resize: vertical;
+      outline: none;
+      background: #fff;
+    }
+
+    .write-area:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,124,250,.12);
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .check {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .check.ok {
+      background: rgba(43,138,62,.10);
+      border-color: rgba(43,138,62,.48);
+      color: var(--good);
+    }
+
+    .teacher-side {
+      display: grid;
+      gap: 14px;
+    }
+
+    .objective {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .objective h3 {
+      margin: 0 0 7px;
+      font-size: 18px;
+    }
+
+    .objective ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .timer {
+      height: 10px;
+      background: #ece3d8;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--warn));
+      border-radius: 999px;
+      transition: width .2s linear;
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+      font-weight: 650;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      background: #252525;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, bottom .2s ease;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      bottom: 28px;
+    }
+
+    @media (max-width: 850px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .answer-grid,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .tf-row {
+        grid-template-columns: 1fr;
+      }
+
+      .person {
+        width: 112px;
+      }
+
+      .titlebox h1 {
+        font-size: 28px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .btn, .tabs, header .stats {
+        display: none;
+      }
+
+      .main {
+        display: block;
+      }
+
+      .section {
+        display: block !important;
+        page-break-inside: avoid;
+        margin-bottom: 14px;
+      }
+
+      .card, .objective {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="titlebox">
+        <h1>My Family Detective</h1>
+        <p>A2 English · family words · possessive ’s · have/has got</p>
+      </div>
+
+      <div class="stats">
+        <div class="pill">Score: <span id="score">0</span></div>
+        <div class="pill">Time: <span id="time">08:00</span></div>
+        <button class="btn secondary" onclick="startTimer()">Start Timer</button>
+        <button class="btn secondary" onclick="resetAll()">Reset</button>
+        <button class="btn secondary" onclick="window.print()">Print</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <section class="card">
+        <div class="tabs">
+          <button class="tab active" onclick="openSection('tree', this)">1. Family Tree</button>
+          <button class="tab" onclick="openSection('sentence', this)">2. Sentence Builder</button>
+          <button class="tab" onclick="openSection('read', this)">3. Mini Reading</button>
+          <button class="tab" onclick="openSection('write', this)">4. Write</button>
+        </div>
+
+        <div class="section active" id="tree">
+          <h2>1. Family Tree Detective</h2>
+          <p>Click the correct person in the family tree. Then choose the correct sentence.</p>
+
+          <div class="family-tree" id="familyTree"></div>
+
+          <div class="taskbox">
+            <h3>Question</h3>
+            <div class="question" id="treeQuestion">Loading...</div>
+            <div class="answer-grid" id="treeAnswers"></div>
+            <div class="mini-row">
+              <button class="btn" onclick="nextTreeQuestion()">Next Question</button>
+            </div>
+            <div class="feedback" id="treeFeedback"></div>
+          </div>
+        </div>
+
+        <div class="section" id="sentence">
+          <h2>2. Build a Family Sentence</h2>
+          <p>Read the clue. Tap the words to make a good sentence. Use the family tree to help.</p>
+
+          <div class="taskbox">
+            <h3 id="builderPrompt">Clue: Elif and Deniz have the same mother and father.</h3>
+            <div class="sentence-box" id="sentenceBox">Tap the words below...</div>
+            <div class="word-bank" id="wordBank"></div>
+            <div class="mini-row">
+              <button class="btn good" onclick="checkBuiltSentence()">Check</button>
+              <button class="btn secondary" onclick="clearBuiltSentence()">Clear</button>
+              <button class="btn" onclick="nextBuilder()">Next</button>
+            </div>
+            <div class="feedback" id="builderFeedback"></div>
+          </div>
+        </div>
+
+        <div class="section" id="read">
+          <h2>3. Mini Reading: Meet Deniz</h2>
+          <p>Read the text. Then choose True or False.</p>
+
+          <div class="reading">
+            Hi! My name is <strong>Deniz</strong>. I live with my mother, my father, and my sister.
+            My sister’s name is <strong>Elif</strong>. She is funny and a little noisy.
+            My uncle <strong>Mert</strong> lives near our house. He has got one son, <strong>Can</strong>.
+            Can is my cousin. My grandmother <strong>Fatma</strong> is kind, and my grandfather
+            <strong>Hasan</strong> tells very long stories. Everyone smiles, but nobody escapes.
+          </div>
+
+          <div class="truefalse" id="tfBox"></div>
+          <div class="feedback" id="tfFeedback"></div>
+        </div>
+
+        <div class="section" id="write">
+          <h2>4. Write About a Family</h2>
+          <p>Write 5–7 sentences about Deniz’s family or your own family. Use the checklist.</p>
+
+          <textarea class="write-area" id="writing" oninput="checkWriting()" placeholder="Deniz has got a sister. Her name is Elif. Elif is Deniz’s sister..."></textarea>
+
+          <div class="checklist">
+            <div class="check" id="checkFamily">Use 3 family words</div>
+            <div class="check" id="checkPossessive">Use possessive ’s</div>
+            <div class="check" id="checkHave">Use have/has got</div>
+            <div class="check" id="checkLength">Write 5+ sentences</div>
+          </div>
+          <div class="feedback" id="writingFeedback">0 sentences</div>
+        </div>
+      </section>
+</div>
+  </div>
+
+  <div class="toast" id="toast">Nice.</div>
+
+  <script>
+    const family = [
+      { id: "fatma", name: "Fatma", role: "grandmother", face: "👵", row: 1 },
+      { id: "hasan", name: "Hasan", role: "grandfather", face: "👴", row: 1 },
+      { id: "ayse", name: "Ayşe", role: "mother", face: "👩", row: 2 },
+      { id: "mehmet", name: "Mehmet", role: "father", face: "👨", row: 2 },
+      { id: "mert", name: "Mert", role: "uncle", face: "🧔", row: 2 },
+      { id: "deniz", name: "Deniz", role: "student", face: "🧑", row: 3 },
+      { id: "elif", name: "Elif", role: "sister", face: "👧", row: 3 },
+      { id: "can", name: "Can", role: "cousin", face: "👦", row: 3 }
+    ];
+
+    const treeQuestions = [
+      {
+        text: "Who is Deniz’s sister?",
+        person: "elif",
+        answers: ["Elif is Deniz’s sister.", "Elif is Deniz’s aunt.", "Elif is Deniz’s cousin.", "Elif is Deniz’s mother."],
+        correctAnswer: "Elif is Deniz’s sister."
+      },
+      {
+        text: "Who is Deniz’s uncle?",
+        person: "mert",
+        answers: ["Mert is Deniz’s uncle.", "Mert is Deniz’s brother.", "Mert is Deniz’s grandfather.", "Mert is Deniz’s cousin."],
+        correctAnswer: "Mert is Deniz’s uncle."
+      },
+      {
+        text: "Who is Deniz’s cousin?",
+        person: "can",
+        answers: ["Can is Deniz’s cousin.", "Can is Deniz’s father.", "Can is Deniz’s grandfather.", "Can is Deniz’s uncle."],
+        correctAnswer: "Can is Deniz’s cousin."
+      },
+      {
+        text: "Who is Deniz’s grandmother?",
+        person: "fatma",
+        answers: ["Fatma is Deniz’s grandmother.", "Fatma is Deniz’s sister.", "Fatma is Deniz’s aunt.", "Fatma is Deniz’s cousin."],
+        correctAnswer: "Fatma is Deniz’s grandmother."
+      }
+    ];
+
+    const builderTasks = [
+      {
+        prompt: "Clue: Elif and Deniz have the same mother and father.",
+        target: ["Elif", "is", "Deniz’s", "sister."],
+        distractors: ["cousin.", "uncle.", "has got"]
+      },
+      {
+        prompt: "Clue: Can is Deniz’s cousin. Count Can.",
+        target: ["Deniz", "has got", "one", "cousin."],
+        distractors: ["sister.", "is", "mother"]
+      },
+      {
+        prompt: "Clue: Can is Mert’s son. Who is Mert?",
+        target: ["Mert", "is", "Can’s", "father."],
+        distractors: ["grandfather.", "Deniz’s", "has got"]
+      },
+      {
+        prompt: "Clue: Fatma is Mehmet’s mother. Mehmet is Deniz’s father.",
+        target: ["Fatma", "is", "Deniz’s", "grandmother."],
+        distractors: ["sister.", "cousin.", "have got"]
+      }
+    ];
+
+    const tfStatements = [
+      { text: "Deniz has got a sister.", answer: true },
+      { text: "Elif is very quiet.", answer: false },
+      { text: "Can is Deniz’s cousin.", answer: true },
+      { text: "Mert is Deniz’s grandfather.", answer: false },
+      { text: "Hasan tells long stories.", answer: true }
+    ];
+
+    let score = 0;
+    let treeIndex = 0;
+    let selectedPerson = null;
+    let selectedAnswer = null;
+    let builderIndex = 0;
+    let built = [];
+    let timerSeconds = 8 * 60;
+    let totalTimerSeconds = 8 * 60;
+    let timerHandle = null;
+
+    function toast(text) {
+      const el = document.getElementById("toast");
+      el.textContent = text;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 1000);
+    }
+
+    function updateScore(points = 0) {
+      score += points;
+      document.getElementById("score").textContent = score;
+    }
+
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function openSection(id, tab) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      tab.classList.add("active");
+    }
+
+    function renderFamilyTree() {
+      const tree = document.getElementById("familyTree");
+      tree.innerHTML = "";
+
+      [1, 2, 3].forEach(rowNum => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        family.filter(p => p.row === rowNum).forEach(p => {
+          const card = document.createElement("div");
+          card.className = "person";
+          card.dataset.id = p.id;
+          card.onclick = () => selectPerson(p.id);
+          card.innerHTML = `
+            <div class="face">${p.face}</div>
+            <div class="name">${p.name}</div>
+            <div class="role">${p.role}</div>
+          `;
+          row.appendChild(card);
+        });
+
+        tree.appendChild(row);
+      });
+    }
+
+    function selectPerson(id) {
+      selectedPerson = id;
+      document.querySelectorAll(".person").forEach(p => p.classList.toggle("selected", p.dataset.id === id));
+      checkTreeIfReady();
+    }
+
+    function renderTreeQuestion() {
+      selectedPerson = null;
+      selectedAnswer = null;
+      document.querySelectorAll(".person").forEach(p => p.classList.remove("selected"));
+
+      const q = treeQuestions[treeIndex];
+      document.getElementById("treeQuestion").textContent = q.text;
+
+      const answers = document.getElementById("treeAnswers");
+      answers.innerHTML = "";
+      shuffle(q.answers).forEach(text => {
+        const b = document.createElement("button");
+        b.className = "answer";
+        b.textContent = text;
+        b.onclick = () => {
+          selectedAnswer = text;
+          document.querySelectorAll(".answer").forEach(a => a.classList.remove("correct", "wrong"));
+          b.style.borderColor = "var(--accent)";
+          checkTreeIfReady();
+        };
+        answers.appendChild(b);
+      });
+
+      const fb = document.getElementById("treeFeedback");
+      fb.textContent = "Choose a person and a sentence.";
+      fb.className = "feedback";
+    }
+
+    function checkTreeIfReady() {
+      if (!selectedPerson || !selectedAnswer) return;
+
+      const q = treeQuestions[treeIndex];
+      const correct = selectedPerson === q.person && selectedAnswer === q.correctAnswer;
+      const fb = document.getElementById("treeFeedback");
+
+      document.querySelectorAll(".answer").forEach(a => {
+        a.classList.remove("correct", "wrong");
+        if (a.textContent === selectedAnswer) a.classList.add(correct ? "correct" : "wrong");
+        if (!correct && a.textContent === q.correctAnswer) a.classList.add("correct");
+      });
+
+      if (correct) {
+        fb.textContent = "Correct. The family tree is safe.";
+        fb.className = "feedback good";
+        updateScore(10);
+      } else {
+        fb.textContent = "Not quite. Check the person and the sentence.";
+        fb.className = "feedback bad";
+      }
+    }
+
+    function nextTreeQuestion() {
+      treeIndex = (treeIndex + 1) % treeQuestions.length;
+      renderTreeQuestion();
+    }
+
+    function renderBuilder() {
+      const task = builderTasks[builderIndex];
+      built = [];
+      document.getElementById("builderPrompt").textContent = task.prompt;
+      document.getElementById("sentenceBox").textContent = "Tap the words below...";
+      document.getElementById("builderFeedback").textContent = "";
+
+      const bank = document.getElementById("wordBank");
+      bank.innerHTML = "";
+
+      shuffle([...task.target, ...task.distractors]).forEach(word => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.textContent = word;
+        chip.onclick = () => addWord(chip, word);
+        bank.appendChild(chip);
+      });
+    }
+
+    function addWord(chip, word) {
+      if (chip.classList.contains("used")) return;
+      built.push(word);
+      chip.classList.add("used");
+      document.getElementById("sentenceBox").textContent = built.join(" ");
+    }
+
+    function clearBuiltSentence() {
+      built = [];
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("used"));
+      document.getElementById("sentenceBox").textContent = "Tap the words below...";
+      document.getElementById("builderFeedback").textContent = "";
+    }
+
+    function checkBuiltSentence() {
+      const task = builderTasks[builderIndex];
+      const fb = document.getElementById("builderFeedback");
+      const correct = built.join("|") === task.target.join("|");
+
+      if (correct) {
+        fb.textContent = "Correct sentence. The apostrophe did not die for nothing.";
+        fb.className = "feedback good";
+        updateScore(10);
+      } else {
+        fb.textContent = "Not correct yet. Check the clue and word order.";
+        fb.className = "feedback bad";
+      }
+    }
+
+    function nextBuilder() {
+      builderIndex = (builderIndex + 1) % builderTasks.length;
+      renderBuilder();
+    }
+
+    function renderTF() {
+      const box = document.getElementById("tfBox");
+      box.innerHTML = "";
+
+      tfStatements.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "tf-row";
+        row.innerHTML = `
+          <span>${index + 1}. ${item.text}</span>
+          <button class="btn secondary" onclick="answerTF(${index}, true, this)">True</button>
+          <button class="btn secondary" onclick="answerTF(${index}, false, this)">False</button>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function answerTF(index, value, btn) {
+      const item = tfStatements[index];
+      const fb = document.getElementById("tfFeedback");
+      const correct = value === item.answer;
+
+      const row = btn.parentElement;
+      row.querySelectorAll("button").forEach(b => {
+        b.classList.remove("good", "bad");
+        b.classList.add("secondary");
+      });
+
+      btn.classList.remove("secondary");
+      btn.classList.add(correct ? "good" : "bad");
+
+      if (correct) {
+        fb.textContent = "Correct.";
+        fb.className = "feedback good";
+        updateScore(5);
+      } else {
+        fb.textContent = "Nope. Read the text again. It is short, mercifully.";
+        fb.className = "feedback bad";
+      }
+    }
+
+    function checkWriting() {
+      const text = document.getElementById("writing").value.trim();
+      const lower = text.toLowerCase();
+
+      const familyWords = ["mother", "father", "sister", "brother", "uncle", "aunt", "cousin", "grandmother", "grandfather", "family"];
+      const usedFamilyWords = familyWords.filter(w => lower.includes(w)).length;
+
+      const sentenceCount = text ? text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean).length : 0;
+
+      setCheck("checkFamily", usedFamilyWords >= 3);
+      setCheck("checkPossessive", /[a-zA-ZçğıöşüÇĞİÖŞÜ]+[’']s\b/.test(text));
+      setCheck("checkHave", /\b(have got|has got)\b/i.test(text));
+      setCheck("checkLength", sentenceCount >= 5);
+
+      const complete = usedFamilyWords >= 3 &&
+        /[a-zA-ZçğıöşüÇĞİÖŞÜ]+[’']s\b/.test(text) &&
+        /\b(have got|has got)\b/i.test(text) &&
+        sentenceCount >= 5;
+
+      const fb = document.getElementById("writingFeedback");
+      fb.textContent = `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}`;
+      fb.className = complete ? "feedback good" : "feedback";
+      if (complete) fb.textContent += " · Checklist complete.";
+    }
+
+    function setCheck(id, ok) {
+      document.getElementById(id).classList.toggle("ok", ok);
+    }
+
+    function setTimer(minutes) {
+      totalTimerSeconds = minutes * 60;
+      timerSeconds = totalTimerSeconds;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, "0");
+      const s = (timerSeconds % 60).toString().padStart(2, "0");
+      document.getElementById("time").textContent = `${m}:${s}`;
+
+      const percent = totalTimerSeconds ? (timerSeconds / totalTimerSeconds) * 100 : 0;
+      document.getElementById("bar").style.width = `${percent}%`;
+    }
+
+    function startTimer() {
+      if (timerHandle) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        toast("Timer paused");
+        return;
+      }
+
+      toast("Timer started");
+      timerHandle = setInterval(() => {
+        timerSeconds = Math.max(0, timerSeconds - 1);
+        updateTimerDisplay();
+
+        if (timerSeconds === 0) {
+          clearInterval(timerHandle);
+          timerHandle = null;
+          toast("Time is up");
+        }
+      }, 1000);
+    }
+
+    function resetAll() {
+      score = 0;
+      treeIndex = 0;
+      builderIndex = 0;
+      selectedPerson = null;
+      selectedAnswer = null;
+      updateScore(0);
+      renderFamilyTree();
+      renderTreeQuestion();
+      renderBuilder();
+      renderTF();
+      document.getElementById("writing").value = "";
+      checkWriting();
+      setTimer(8);
+      toast("Reset");
+    }
+
+    resetAll();
+  </script>
+</body>
+</html>
